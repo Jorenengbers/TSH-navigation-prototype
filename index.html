@@ -241,16 +241,27 @@
     cursor: pointer;
     width: 100%;
     position: relative;
+    z-index: 1; /* always render above the sliding highlight */
   }
   .flyout-item.selected { background: #f3f2f0; }
 
-  /* Sliding highlight pill — one per list, moved by JS */
+  /* Immediate background on the active item — ensures text is readable
+     before/during the highlight slide animation */
+  .flyout-item.is-highlighted                             { background: #f3f2f0; }
+  .flyout-themed .flyout-item.is-highlighted              { background: var(--accent); }
+  .flyout-loc-country .flyout-item.is-highlighted:not(.selected),
+  .flyout-loc-city    .flyout-item.is-highlighted:not(.selected) { background: #1a1510; }
+
+  /* Sliding highlight pill — one per list, moved by JS.
+     z-index: 0 keeps it behind items; visible in the gaps between items
+     as it slides, creating the GrubHub-style connecting trail. */
   .flyout-highlight {
     position: absolute;
     left: 0; right: 0;
     border-radius: 12px;
     pointer-events: none;
     opacity: 0;
+    z-index: 0;
     will-change: transform;
     transition:
       transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -893,22 +904,32 @@
     hl.style.background = bgColor;
     container.appendChild(hl);
 
-    let entered = false;
+    let entered     = false;
+    let activeItem  = null;
+
+    function setActive(item) {
+      if (activeItem && activeItem !== item) activeItem.classList.remove('is-highlighted');
+      if (item) item.classList.add('is-highlighted');
+      activeItem = item;
+    }
 
     container.querySelectorAll('.flyout-item').forEach(item => {
       item.addEventListener('mouseenter', () => {
         // Selected items in location columns keep their gray CSS background
         if (item.classList.contains('selected') && isLocation) {
+          setActive(null);
           hl.style.opacity = '0';
           entered = false;
           return;
         }
 
+        setActive(item);
+
         const top    = item.offsetTop;
         const height = item.offsetHeight;
 
         if (!entered) {
-          // First entry: snap to position, then fade in
+          // First entry: snap highlight to position, then fade in
           hl.style.transition = 'none';
           hl.style.transform  = `translateY(${top}px)`;
           hl.style.height     = height + 'px';
@@ -926,6 +947,7 @@
     });
 
     container.addEventListener('mouseleave', () => {
+      setActive(null);
       hl.style.opacity = '0';
       entered = false;
     });
