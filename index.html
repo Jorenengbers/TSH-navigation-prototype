@@ -247,12 +247,12 @@
       calc(100vw - 48px)
     );
     gap: 12px;
-    align-items: stretch;
+    align-items: flex-start;
   }
   .flyout-xlwide {
     width: max-content;
     gap: 12px;
-    align-items: stretch;
+    align-items: flex-start;
   }
   .flyout-narrow {
     width: min(320px, calc(100vw - 48px));
@@ -268,26 +268,30 @@
     overflow: visible;
   }
 
-  /* List scroll — show up to 5 items, then scroll (wide flyouts only) */
+  /* Featured card — fixed square (height of 5 two-line rows); lists show all items */
   .flyout {
     --flyout-list-gap: 0px;
-    --flyout-list-max-visible: 5;
+    --flyout-featured-rows: 5;
     --flyout-item-row-height: 62px; /* 12+12 padding + 20 title + 18 desc */
     --flyout-featured-size: calc(
-      var(--flyout-list-max-visible) * var(--flyout-item-row-height) +
-      (var(--flyout-list-max-visible) - 1) * var(--flyout-list-gap)
+      var(--flyout-featured-rows) * var(--flyout-item-row-height) +
+      (var(--flyout-featured-rows) - 1) * var(--flyout-list-gap)
     );
   }
 
-  .flyout-list,
-  .flyout-loc-col {
-    max-height: calc(
-      var(--flyout-list-max-visible) * var(--flyout-item-row-height) +
-      (var(--flyout-list-max-visible) - 1) * var(--flyout-list-gap)
-    );
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+  .flyout-wide .flyout-list {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-height: none;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .flyout-xlwide .flyout-loc-col {
+    flex: 0 0 auto;
+    max-height: none;
+    min-height: auto;
+    overflow: visible;
   }
 
   .flyout-loc-col {
@@ -301,7 +305,7 @@
 
   /* ── Flyout menu list ───────────────────────────────────────────── */
   .flyout-list {
-    flex: 1; display: flex; flex-direction: column;
+    display: flex; flex-direction: column;
     gap: 0; min-width: 0;
     position: relative;
   }
