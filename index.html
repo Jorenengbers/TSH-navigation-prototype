@@ -146,6 +146,7 @@
 
   /* ── Flyout base ────────────────────────────────────────────────── */
   .flyout {
+    --flyout-nav-gap: 8px;
     position: fixed;
     right: 24px;
     left: auto;
@@ -202,7 +203,7 @@
   .flyout {
     --flyout-list-gap: 8px;
     --flyout-list-max-visible: 5;
-    --flyout-item-row-height: 64px; /* 12+12 padding + 20+20 title/desc */
+    --flyout-item-row-height: 62px; /* 12+12 padding + 20 title + 18 desc */
   }
 
   .flyout-list,
@@ -230,21 +231,32 @@
   .flyout-list {
     flex: 1; display: flex; flex-direction: column;
     gap: 8px; min-width: 0;
+    position: relative;
   }
 
   .flyout-item {
     display: flex; align-items: flex-start;
     flex-shrink: 0;
-    padding: 12px; border-radius: 12px;
+    padding: 12px 16px; border-radius: 12px;
     cursor: pointer;
-    transition: background 0.12s;
     width: 100%;
     position: relative;
-    overflow: hidden;
   }
-  /* Default gray hover – Help, Profile, location countries */
-  .flyout-item:hover { background: #f3f2f0; }
   .flyout-item.selected { background: #f3f2f0; }
+
+  /* Sliding highlight pill — one per list, moved by JS */
+  .flyout-highlight {
+    position: absolute;
+    left: 0; right: 0;
+    border-radius: 12px;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform;
+    transition:
+      transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+      height    220ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity   130ms ease;
+  }
 
   .flyout-item-inner { display: flex; flex-direction: column; gap: 0; }
   .flyout-item-title {
@@ -254,30 +266,25 @@
     transition: color 0.12s;
   }
   .flyout-item-desc {
-    font-size: 14px; font-weight: 400;
-    letter-spacing: 0.02em; line-height: 20px;
+    font-size: 12px; font-weight: 400;
+    letter-spacing: 0; line-height: 18px;
     color: #6b6763;
     transition: color 0.12s;
   }
   .flyout-item-muted { color: #57534e; }
 
-  /* Themed flyouts (Stay, Work) — colored hover + white text */
-  .flyout-themed .flyout-item:hover { background: var(--accent); }
+  /* Themed flyouts (Stay, Work) — white text on hover */
   .flyout-themed .flyout-item:hover .flyout-item-title,
   .flyout-themed .flyout-item:hover .flyout-item-desc { color: white; }
 
   /* ── Location flyout columns ──────────────────────────────────── */
-  .flyout-loc-country .flyout-item:hover:not(.selected) { background: #1a1510; }
   .flyout-loc-country .flyout-item:hover:not(.selected) .flyout-item-title { color: white; }
-  .flyout-loc-country .flyout-item.selected,
-  .flyout-loc-country .flyout-item.selected:hover { background: #f3f2f0; }
-  .flyout-loc-country .flyout-item.selected:hover .flyout-item-title { color: #1a1510; }
+  .flyout-loc-country .flyout-item.selected { background: #f3f2f0; }
+  .flyout-loc-country .flyout-item.selected .flyout-item-title { color: #1a1510; }
 
-  .flyout-loc-city .flyout-item:hover { background: #1a1510; }
-  .flyout-loc-city .flyout-item:hover .flyout-item-title { color: white; }
-  .flyout-loc-city .flyout-item.selected,
-  .flyout-loc-city .flyout-item.selected:hover { background: #f3f2f0; }
-  .flyout-loc-city .flyout-item.selected:hover .flyout-item-title { color: #1a1510; }
+  .flyout-loc-city .flyout-item:hover:not(.selected) .flyout-item-title { color: white; }
+  .flyout-loc-city .flyout-item.selected { background: #f3f2f0; }
+  .flyout-loc-city .flyout-item.selected .flyout-item-title { color: #1a1510; }
 
   /* Items with icons */
   .flyout-item-icon {
@@ -356,6 +363,7 @@
   .flyout-loc-col {
     width: 240px; flex-shrink: 0;
     display: flex; flex-direction: column; gap: 8px;
+    position: relative;
   }
   .flyout-loc-featured {
     flex: 0 0 var(--flyout-featured-size, 344px);
@@ -379,6 +387,14 @@
   .flyout-divider {
     height: 1px; background: #e7e5e1;
     width: 100%; margin: 4px 0; flex-shrink: 0;
+  }
+
+  /* Transparent hover bridge — fills gap between nav pill and flyout */
+  #flyout-bridge {
+    position: fixed;
+    z-index: 195;
+    display: none;
+    right: 24px;
   }
 </style>
 </head>
@@ -701,6 +717,9 @@
 
 </div><!-- end #flyout-panel -->
 
+<!-- Transparent bridge fills the gap between nav pill and flyout so hover is continuous -->
+<div id="flyout-bridge"></div>
+
 <script>
   const config = [
     { triggerId: 'trigger-location', sectionId: 'flyout-location' },
@@ -712,17 +731,38 @@
     { triggerId: 'trigger-profile',  sectionId: 'flyout-profile'  },
   ];
 
-  const panel = document.getElementById('flyout-panel');
+  const panel  = document.getElementById('flyout-panel');
+  const bridge = document.getElementById('flyout-bridge');
   let activeSection = null;
   let activeTrigger = null;
   let closeTimer    = null;
 
-  function getNavBottom() {
+  function getNavPillBottom() {
+    const pill = document.querySelector('.nav-pill');
+    if (pill) return pill.getBoundingClientRect().bottom;
     return document.getElementById('nav-container').getBoundingClientRect().bottom;
   }
 
+  function getFlyoutNavGap() {
+    return parseFloat(getComputedStyle(panel).getPropertyValue('--flyout-nav-gap')) || 8;
+  }
+
   function positionPanel() {
-    panel.style.top = getNavBottom() + 'px';
+    panel.style.top = getNavPillBottom() + getFlyoutNavGap() + 'px';
+  }
+
+  function updateBridge() {
+    if (!panel.classList.contains('show')) { bridge.style.display = 'none'; return; }
+    const pill = document.querySelector('.nav-pill');
+    if (!pill) { bridge.style.display = 'none'; return; }
+    const pillBottom = pill.getBoundingClientRect().bottom;
+    const panelTop   = parseFloat(panel.style.top) || 0;
+    const gap = panelTop - pillBottom;
+    if (gap <= 0) { bridge.style.display = 'none'; return; }
+    bridge.style.display = 'block';
+    bridge.style.top    = pillBottom + 'px';
+    bridge.style.height = gap + 'px';
+    bridge.style.width  = panel.offsetWidth + 'px';
   }
 
   function getSizeClass(section) {
@@ -756,12 +796,14 @@
 
     // Show panel — already visible: no re-animation; hidden: animates in
     panel.classList.add('show');
+    updateBridge();
   }
 
   function scheduleFlyoutClose() {
     clearTimeout(closeTimer);
     closeTimer = setTimeout(() => {
       panel.classList.remove('show');
+      bridge.style.display = 'none';
       if (activeSection) { activeSection.classList.remove('active'); activeSection = null; }
       if (activeTrigger) { activeTrigger.classList.remove('active'); activeTrigger = null; }
     }, 300);
@@ -774,11 +816,13 @@
     trigger.addEventListener('mouseleave', scheduleFlyoutClose);
   });
 
-  panel.addEventListener('mouseenter', () => clearTimeout(closeTimer));
-  panel.addEventListener('mouseleave', scheduleFlyoutClose);
+  panel.addEventListener('mouseenter',  () => clearTimeout(closeTimer));
+  panel.addEventListener('mouseleave',  scheduleFlyoutClose);
+  bridge.addEventListener('mouseenter', () => clearTimeout(closeTimer));
+  bridge.addEventListener('mouseleave', scheduleFlyoutClose);
 
   window.addEventListener('resize', () => {
-    if (panel.classList.contains('show')) positionPanel();
+    if (panel.classList.contains('show')) { positionPanel(); updateBridge(); }
   });
 
   // Location flyout — crossfade featured image on city hover
@@ -828,11 +872,71 @@
   });
   cityColumn?.addEventListener('mouseleave', resetLocationImage);
 
+  // ── Sliding highlight ────────────────────────────────────────────
+  // Each flyout list / location column gets one absolutely-positioned
+  // highlight pill that slides between items as the cursor moves.
+  document.querySelectorAll('.flyout-list, .flyout-loc-col').forEach(container => {
+    const isLocation = container.classList.contains('flyout-loc-country') ||
+                       container.classList.contains('flyout-loc-city');
+
+    // Determine pill background
+    let bgColor = '#f3f2f0';
+    if (isLocation) {
+      bgColor = '#1a1510';
+    } else {
+      const themed = container.closest('.flyout-themed');
+      if (themed) bgColor = themed.style.getPropertyValue('--accent') || '#f3f2f0';
+    }
+
+    const hl = document.createElement('div');
+    hl.className = 'flyout-highlight';
+    hl.style.background = bgColor;
+    container.appendChild(hl);
+
+    let entered = false;
+
+    container.querySelectorAll('.flyout-item').forEach(item => {
+      item.addEventListener('mouseenter', () => {
+        // Selected items in location columns keep their gray CSS background
+        if (item.classList.contains('selected') && isLocation) {
+          hl.style.opacity = '0';
+          entered = false;
+          return;
+        }
+
+        const top    = item.offsetTop;
+        const height = item.offsetHeight;
+
+        if (!entered) {
+          // First entry: snap to position, then fade in
+          hl.style.transition = 'none';
+          hl.style.transform  = `translateY(${top}px)`;
+          hl.style.height     = height + 'px';
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            hl.style.transition = '';
+            hl.style.opacity    = '1';
+          }));
+          entered = true;
+        } else {
+          hl.style.transform = `translateY(${top}px)`;
+          hl.style.height    = height + 'px';
+          hl.style.opacity   = '1';
+        }
+      });
+    });
+
+    container.addEventListener('mouseleave', () => {
+      hl.style.opacity = '0';
+      entered = false;
+    });
+  });
+
   // Close on outside click
   document.addEventListener('click', e => {
     const triggers = config.map(c => document.getElementById(c.triggerId)).filter(Boolean);
-    if (!triggers.some(t => t.contains(e.target)) && !panel.contains(e.target)) {
+    if (!triggers.some(t => t.contains(e.target)) && !panel.contains(e.target) && !bridge.contains(e.target)) {
       panel.classList.remove('show');
+      bridge.style.display = 'none';
       if (activeSection) { activeSection.classList.remove('active'); activeSection = null; }
       if (activeTrigger) { activeTrigger.classList.remove('active'); activeTrigger = null; }
       clearTimeout(closeTimer);
