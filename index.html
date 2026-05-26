@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Social Hub – Navigation Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'Social Hub VF';
+    src: url('Social Hub VF BETA 09.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Social Hub VF', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    overflow: hidden;
+    background: #1a1510;
+  }
+
+  /* ── Hero ───────────────────────────────────────────────────────── */
+  .hero {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .hero img {
+    position: absolute;
+    width: 145.14%;
+    height: 340.28%;
+    left: -22.57%;
+    top: -120.14%;
+    max-width: none;
+    object-fit: cover;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* ── Nav container ──────────────────────────────────────────────── */
+  .nav-container {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 24px;
+  }
+
+  /* Logo */
+  .nav-logo {
+    width: 58px; height: 58px;
+    flex-shrink: 0; cursor: pointer;
+    position: relative;
+  }
+  .nav-logo img { width: 103%; height: 103%; margin: -1.5%; object-fit: contain; }
+
+  /* White pill */
+  .nav-pill {
+    background: #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 2px 12px rgba(0,0,0,0.08);
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    padding: 8px 8px 8px 20px;
+    flex-shrink: 0;
+  }
+
+  /* Items row */
+  .nav-items {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 42px;
+  }
+
+  /* Location selector */
+  .nav-location {
+    display: flex; align-items: center; gap: 4px;
+    cursor: pointer; padding: 2px 0;
+    background: none; border: none; outline: none;
+    font-family: inherit;
+  }
+  .nav-location-text {
+    font-size: 14px; font-weight: 400;
+    letter-spacing: 0.02em; line-height: 20px;
+    color: #1a1510; white-space: nowrap;
+  }
+  .nav-location-chevron {
+    width: 16px; height: 16px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .nav-location-chevron img { width: 10px; height: 6px; display: block; }
+
+  /* Regular nav items */
+  .nav-item {
+    font-size: 14px; font-weight: 400;
+    letter-spacing: 0.02em; line-height: 20px;
+    color: #1a1510; cursor: pointer;
+    padding: 2px 0; white-space: nowrap;
+    transition: color 0.15s;
+    user-select: none;
+  }
+  .nav-items:hover .nav-item:not(:hover):not(.active) { color: #7f7c78; }
+  .nav-item.active { color: #1a1510; }
+
+  /* Buttons group */
+  .nav-buttons { display: flex; align-items: center; gap: 16px; }
+
+  .nav-icon-btn {
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: 9999px;
+    background: none; border: none; outline: none;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .nav-icon-btn:hover { background: #f3f2f0; }
+  .nav-icon-btn img,
+  .nav-icon-btn svg { width: 16px; height: 16px; object-fit: contain; display: block; flex-shrink: 0; }
+
+  .nav-book-btn {
+    background: #1a1510; color: #fff;
+    border: none; border-radius: 9999px;
+    height: 42px; padding: 0 16px;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 0.02em; cursor: pointer;
+    white-space: nowrap; font-family: inherit;
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-book-btn:hover { background: #ffc300; color: #1a1510; }
+
+  /* ── Flyout base ────────────────────────────────────────────────── */
+  .flyout {
+    position: fixed;
+    right: 24px;
+    left: auto;
+    z-index: 200;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1), 0 12px 40px rgba(0,0,0,0.14);
+    padding: 12px;
+    display: flex;
+    max-width: calc(100vw - 48px);
+    /* hidden by default — clip from bottom up so it reveals downward on open */
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-6px);
+    clip-path: inset(0 0 100% 0 round 24px);
+    /* close: fast ease-in */
+    transition:
+      opacity   150ms cubic-bezier(0.4, 0, 1, 1),
+      transform 150ms cubic-bezier(0.4, 0, 1, 1),
+      clip-path 150ms cubic-bezier(0.4, 0, 1, 1),
+      visibility 0s linear 150ms;
+    pointer-events: none;
+  }
+  .flyout.show {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0% 0 round 24px);
+    /* open: expo-out — grows down from nav, arrives fast, settles silently */
+    transition:
+      opacity   220ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+      clip-path 350ms cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 0s linear 0s;
+    pointer-events: auto;
+  }
+
+  /* Sizes */
+  .flyout-wide {
+    --flyout-featured-size: 298px;
+    width: min(632px, calc(100vw - 48px));
+    gap: 12px;
+    align-items: stretch;
+  }
+  .flyout-xlwide {
+    --flyout-featured-size: 344px;
+    width: min(946px, calc(100vw - 48px));
+    gap: 12px;
+    align-items: stretch;
+  }
+  .flyout-narrow { width: min(320px, calc(100vw - 48px)); flex-direction: column; }
+
+  /* List scroll — show up to 5 items, then scroll */
+  .flyout {
+    --flyout-list-gap: 8px;
+    --flyout-list-max-visible: 5;
+    --flyout-item-row-height: 64px; /* 12+12 padding + 20+20 title/desc */
+  }
+
+  .flyout-list,
+  .flyout-loc-col {
+    max-height: calc(
+      var(--flyout-list-max-visible) * var(--flyout-item-row-height) +
+      (var(--flyout-list-max-visible) - 1) * var(--flyout-list-gap)
+    );
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .flyout-loc-col,
+  .flyout-narrow .flyout-list {
+    --flyout-item-row-height: 44px; /* 12+12 padding + 20 line */
+  }
+
+  /* Sections inside the single flyout panel */
+  .flyout-section { display: none; }
+  /* display:contents makes children flow as direct flex items of the panel */
+  .flyout-section.active { display: contents; }
+
+  /* ── Flyout menu list ───────────────────────────────────────────── */
+  .flyout-list {
+    flex: 1; display: flex; flex-direction: column;
+    gap: 8px; min-width: 0;
+  }
+
+  .flyout-item {
+    display: flex; align-items: flex-start;
+    flex-shrink: 0;
+    padding: 12px; border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.12s;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Default gray hover – Help, Profile, location countries */
+  .flyout-item:hover { background: #f3f2f0; }
+  .flyout-item.selected { background: #f3f2f0; }
+
+  .flyout-item-inner { display: flex; flex-direction: column; gap: 0; }
+  .flyout-item-title {
+    font-size: 14px; font-weight: 400;
+    letter-spacing: 0.02em; line-height: 20px;
+    color: #1a1510;
+    transition: color 0.12s;
+  }
+  .flyout-item-desc {
+    font-size: 14px; font-weight: 400;
+    letter-spacing: 0.02em; line-height: 20px;
+    color: #6b6763;
+    transition: color 0.12s;
+  }
+  .flyout-item-muted { color: #57534e; }
+
+  /* Themed flyouts (Stay, Work) — colored hover + white text */
+  .flyout-themed .flyout-item:hover { background: var(--accent); }
+  .flyout-themed .flyout-item:hover .flyout-item-title,
+  .flyout-themed .flyout-item:hover .flyout-item-desc { color: white; }
+
+  /* ── Location flyout columns ──────────────────────────────────── */
+  .flyout-loc-country .flyout-item:hover:not(.selected) { background: #1a1510; }
+  .flyout-loc-country .flyout-item:hover:not(.selected) .flyout-item-title { color: white; }
+  .flyout-loc-country .flyout-item.selected,
+  .flyout-loc-country .flyout-item.selected:hover { background: #f3f2f0; }
+  .flyout-loc-country .flyout-item.selected:hover .flyout-item-title { color: #1a1510; }
+
+  .flyout-loc-city .flyout-item:hover { background: #1a1510; }
+  .flyout-loc-city .flyout-item:hover .flyout-item-title { color: white; }
+  .flyout-loc-city .flyout-item.selected,
+  .flyout-loc-city .flyout-item.selected:hover { background: #f3f2f0; }
+  .flyout-loc-city .flyout-item.selected:hover .flyout-item-title { color: #1a1510; }
+
+  /* Items with icons */
+  .flyout-item-icon {
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .flyout-item-icon img {
+    width: 20px; height: 20px;
+    margin-top: 0; flex-shrink: 0;
+  }
+
+  /* ── Featured card (right panel) ───────────────────────────────── */
+  .flyout-featured {
+    flex: 0 0 var(--flyout-featured-size, 298px);
+    width: var(--flyout-featured-size, 298px);
+    min-height: var(--flyout-featured-size, 298px);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    padding: 20px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .flyout-featured-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .flyout-featured-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.88) 100%);
+  }
+  .flyout-featured-content { position: relative; z-index: 1; }
+  .flyout-featured-title {
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-size: 36px; font-weight: 700;
+    line-height: 1; text-transform: uppercase;
+    color: #fff;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .flyout-featured-title-text { line-height: 1; }
+  .flyout-featured-title-blue { color: #3a71de; }
+  .flyout-featured-desc {
+    font-size: 14px; font-weight: 400;
+    line-height: 20px; letter-spacing: 0.02em;
+    color: #fff; margin-top: 8px;
+  }
+  .flyout-featured-desc-dark { color: #1a1510; }
+  .flyout-featured-arrow {
+    width: 24px; height: 24px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transform: translateY(-0.01em);
+  }
+  .flyout-featured-arrow img { width: 100%; height: 100%; display: block; }
+
+  /* Yellow featured (Stay) */
+  .flyout-featured-yellow {
+    background: #e8eb80;
+    overflow: hidden;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+
+  /* All locations button */
+  .flyout-btn {
+    display: inline-flex; align-items: center;
+    background: #fff; color: #1a1510;
+    border: none; border-radius: 9999px;
+    height: 42px; padding: 0 16px;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 0.02em; cursor: pointer;
+    font-family: inherit; margin-top: 24px;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+  .flyout-btn:hover { background: #ffc300; color: #1a1510; }
+
+  /* Location flyout columns */
+  .flyout-loc-col {
+    width: 240px; flex-shrink: 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .flyout-loc-featured {
+    flex: 0 0 var(--flyout-featured-size, 344px);
+    width: var(--flyout-featured-size, 344px);
+    min-height: var(--flyout-featured-size, 344px);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative; padding: 20px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .flyout-loc-featured-images {
+    position: absolute; inset: 0;
+  }
+  .flyout-loc-featured-img {
+    transition: opacity 0.6s ease;
+    opacity: 0;
+  }
+  .flyout-loc-featured-img.is-visible { opacity: 1; }
+
+  /* Divider */
+  .flyout-divider {
+    height: 1px; background: #e7e5e1;
+    width: 100%; margin: 4px 0; flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Hero background ───────────────────────────────────────────── -->
+<div class="hero">
+  <img src="https://www.figma.com/api/mcp/asset/0ff45567-fa4b-4c0f-9bb0-271979e2462a" alt="">
+  <div class="hero-overlay"></div>
+</div>
+
+<!-- ── Navigation bar ────────────────────────────────────────────── -->
+<nav class="nav-container" id="nav-container">
+  <div class="nav-logo">
+    <img src="logo.svg" alt="The Social Hub">
+  </div>
+
+  <div class="nav-pill">
+    <div class="nav-items">
+
+      <!-- Location selector -->
+      <button class="nav-location" id="trigger-location">
+        <span class="nav-location-text">Amsterdam City</span>
+        <span class="nav-location-chevron">
+          <img src="https://www.figma.com/api/mcp/asset/e765baac-db79-47c8-9cae-d27c482df6e2" alt="">
+        </span>
+      </button>
+
+      <span class="nav-item" id="trigger-stay">Stay</span>
+      <span class="nav-item" id="trigger-work">Work</span>
+      <span class="nav-item" id="trigger-meetings">Meeting &amp; Events</span>
+      <span class="nav-item">Eat &amp; Drink</span>
+      <span class="nav-item" id="trigger-membership">Membership</span>
+      <span class="nav-item">About us</span>
+      <span class="nav-item" id="trigger-help">Help</span>
+
+      <div class="nav-buttons">
+        <button class="nav-icon-btn" id="trigger-profile">
+          <svg viewBox="0 0 12.3335 13.6667" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M11.5001 12.8333C11.5001 11.903 11.5001 11.4378 11.3853 11.0592C11.1267 10.207 10.4598 9.54002 9.60752 9.28149C9.22899 9.16666 8.7638 9.16666 7.83342 9.16666H4.5001C3.56972 9.16666 3.10453 9.16666 2.726 9.28149C1.87373 9.54002 1.20679 10.207 0.948253 11.0592C0.833427 11.4378 0.833427 11.903 0.833427 12.8333M9.16676 3.83333C9.16676 5.49019 7.82361 6.83333 6.16676 6.83333C4.50991 6.83333 3.16676 5.49019 3.16676 3.83333C3.16676 2.17648 4.50991 0.833333 6.16676 0.833333C7.82361 0.833333 9.16676 2.17648 9.16676 3.83333Z" stroke="#1A1510" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="nav-book-btn">Book now</button>
+      </div>
+
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- FLYOUT PANELS                                                   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<!-- Single shared flyout panel — content swapped instantly between nav items -->
+<div class="flyout" id="flyout-panel">
+
+<!-- Location section -->
+<div class="flyout-section flyout-xlwide" id="flyout-location">
+  <!-- Countries: selected=gray, hover=dark (#1a1510) + white arrow -->
+  <div class="flyout-loc-col flyout-loc-country">
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">Austria</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">France</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">Italy</span></div></div>
+    <div class="flyout-item selected"><div class="flyout-item-inner"><span class="flyout-item-title">Netherlands</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">Scotland</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">Spain</span></div></div>
+  </div>
+  <!-- Cities: selected=gray, hover=dark (#1a1510) + white arrow -->
+  <div class="flyout-loc-col flyout-loc-city">
+    <div class="flyout-item selected"><div class="flyout-item-inner"><span class="flyout-item-title">Amsterdam City</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">Amsterdam West</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">Delft</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">Eindhoven</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">Groningen</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">Maastricht</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">Rotterdam</span></div></div>
+    <div class="flyout-item"><div class="flyout-item-inner"><span class="flyout-item-title">The Hague</span></div></div>
+  </div>
+  <div class="flyout-loc-featured">
+    <div class="flyout-loc-featured-images">
+      <img class="flyout-featured-img flyout-loc-featured-img is-visible" id="flyout-location-img-a" src="https://www.figma.com/api/mcp/asset/a61c12c8-b656-4781-be70-a2f68a2e44e1" alt="">
+      <img class="flyout-featured-img flyout-loc-featured-img" id="flyout-location-img-b" src="https://www.figma.com/api/mcp/asset/a61c12c8-b656-4781-be70-a2f68a2e44e1" alt="" aria-hidden="true">
+    </div>
+    <div class="flyout-featured-overlay"></div>
+    <div class="flyout-featured-content">
+      <div class="flyout-featured-title">Locations</div>
+      <div class="flyout-featured-desc">21 locations across Europe — find your ideal hub in the city that inspires you most.</div>
+      <button class="flyout-btn">All locations</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stay section — duotone accent: blue #3a71de -->
+<div class="flyout-section flyout-wide flyout-themed" id="flyout-stay" style="--accent:#3a71de;">
+  <div class="flyout-list">
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Hotel Stay</span>
+        <span class="flyout-item-desc">Design your perfect city escape</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Long Stay</span>
+        <span class="flyout-item-desc">14–365 days with all-in pricing</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Student Stay</span>
+        <span class="flyout-item-desc">Purpose-built student stays</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Group Stay</span>
+        <span class="flyout-item-desc">Book 10+ rooms for your group</span>
+      </div>
+    </div>
+  </div>
+  <!-- Yellow promo card -->
+  <div class="flyout-featured flyout-featured-yellow" style="justify-content:flex-end;">
+    <div style="position:relative;z-index:1;">
+      <div class="flyout-featured-title flyout-featured-title-blue">
+        <span class="flyout-featured-title-text">Summer Getaway</span>
+        <span class="flyout-featured-arrow">
+          <img src="https://www.figma.com/api/mcp/asset/ac6e8f2e-6eb3-49b7-8b16-b926bd1b2660" alt="→">
+        </span>
+      </div>
+      <div class="flyout-featured-desc flyout-featured-desc-dark">Explore our latest offers for the perfect city escape.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Work section — duotone accent: forest green #3d6b3d -->
+<div class="flyout-section flyout-wide flyout-themed" id="flyout-work" style="--accent:#3d6b3d;">
+  <div class="flyout-list">
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Explore Coworking</span>
+        <span class="flyout-item-desc">Work smarter in inspiring spaces</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Flexible Workspace</span>
+        <span class="flyout-item-desc">Space that grows with you</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Dedicated Desk</span>
+        <span class="flyout-item-desc">Your permanent desk, shared space</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Private offices</span>
+        <span class="flyout-item-desc">Dedicated offices for your team</span>
+      </div>
+    </div>
+  </div>
+  <div class="flyout-featured">
+    <img class="flyout-featured-img" src="https://www.figma.com/api/mcp/asset/5357e882-cb60-4a8d-8901-6b21142eab78" alt="">
+    <div class="flyout-featured-overlay"></div>
+    <div class="flyout-featured-content">
+      <div class="flyout-featured-title">
+        <span class="flyout-featured-title-text">Free Trial Day</span>
+        <span class="flyout-featured-arrow">
+          <img src="https://www.figma.com/api/mcp/asset/0060f4d2-a3b6-4fae-a611-1ca0880bd30d" alt="→">
+        </span>
+      </div>
+      <div class="flyout-featured-desc">Try any workspace for free and discover your ideal setup.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Meeting & Events section -->
+<div class="flyout-section flyout-wide flyout-themed" id="flyout-meetings" style="--accent:#e12942;">
+  <div class="flyout-list">
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Explore Meetings &amp; Events</span>
+        <span class="flyout-item-desc">Meetings and memorable events</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Meeting rooms</span>
+        <span class="flyout-item-desc">Rooms for up to 20 people</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Event spaces</span>
+        <span class="flyout-item-desc">Fully equipped event spaces</span>
+      </div>
+    </div>
+  </div>
+  <div class="flyout-featured">
+    <img class="flyout-featured-img" src="https://www.figma.com/api/mcp/asset/c2cd74ae-a3b9-4fed-a2c9-94723438f851" alt="">
+    <div class="flyout-featured-overlay"></div>
+    <div class="flyout-featured-content">
+      <div class="flyout-featured-title">
+        <span class="flyout-featured-title-text">Plan your event</span>
+        <span class="flyout-featured-arrow">
+          <img src="https://www.figma.com/api/mcp/asset/151cc520-4d41-4832-8e97-e97c4133e15f" alt="→">
+        </span>
+      </div>
+      <div class="flyout-featured-desc">Let our team help you create an inspiring event.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Membership section — duotone accent: sky blue #66aaff -->
+<div class="flyout-section flyout-wide flyout-themed" id="flyout-membership" style="--accent:#66aaff;">
+  <div class="flyout-list">
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Explore Membership</span>
+        <span class="flyout-item-desc">Our community across Europe</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Community</span>
+        <span class="flyout-item-desc">Lounge, bar and rooftop pool</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Coworking</span>
+        <span class="flyout-item-desc">Workspaces and meeting rooms</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Wellbeing</span>
+        <span class="flyout-item-desc">Pool, gym, classes and wellness</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Events</span>
+        <span class="flyout-item-desc">Curated events for our community</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Learning</span>
+        <span class="flyout-item-desc">Learning with Talent Garden</span>
+      </div>
+    </div>
+    <div class="flyout-item">
+      <div class="flyout-item-inner">
+        <span class="flyout-item-title">Discounts</span>
+        <span class="flyout-item-desc">Rates on food, stays and rooms</span>
+      </div>
+    </div>
+  </div>
+  <div class="flyout-featured">
+    <img class="flyout-featured-img" src="https://www.figma.com/api/mcp/asset/a61c12c8-b656-4781-be70-a2f68a2e44e1" alt="">
+    <div class="flyout-featured-overlay"></div>
+    <div class="flyout-featured-content">
+      <div class="flyout-featured-title">
+        <span class="flyout-featured-title-text">Become a member</span>
+        <span class="flyout-featured-arrow">
+          <img src="https://www.figma.com/api/mcp/asset/0060f4d2-a3b6-4fae-a611-1ca0880bd30d" alt="→">
+        </span>
+      </div>
+      <div class="flyout-featured-desc">Enjoy premium spaces, curated events and a vibrant community from €121 monthly.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Help section -->
+<div class="flyout-section flyout-narrow" id="flyout-help">
+  <div class="flyout-list">
+    <div class="flyout-item flyout-item-icon">
+      <img src="https://www.figma.com/api/mcp/asset/7591b212-a8cb-4a19-a3ac-713384f36041" alt="">
+      <div class="flyout-item-inner"><span class="flyout-item-title">Manage my booking</span></div>
+    </div>
+    <div class="flyout-item flyout-item-icon">
+      <img src="https://www.figma.com/api/mcp/asset/5b25a248-f616-4ef2-943e-18e52e096c0c" alt="">
+      <div class="flyout-item-inner"><span class="flyout-item-title">Help Center</span></div>
+    </div>
+    <div class="flyout-item flyout-item-icon">
+      <img src="https://www.figma.com/api/mcp/asset/ccacd917-81a2-4889-ac2d-ecb306112388" alt="">
+      <div class="flyout-item-inner"><span class="flyout-item-title">Contact</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Profile section -->
+<div class="flyout-section flyout-narrow" id="flyout-profile">
+  <div class="flyout-list">
+    <div class="flyout-item flyout-item-icon">
+      <img src="https://www.figma.com/api/mcp/asset/41bc8f06-b603-421b-9b8b-0fdea1f195ee" alt="">
+      <div class="flyout-item-inner"><span class="flyout-item-title">My Stays</span></div>
+    </div>
+    <div class="flyout-item flyout-item-icon">
+      <img src="https://www.figma.com/api/mcp/asset/7a55558d-583e-4ed7-8810-4efa800242d5" alt="">
+      <div class="flyout-item-inner"><span class="flyout-item-title">My Membership</span></div>
+    </div>
+    <div class="flyout-item flyout-item-icon">
+      <img src="https://www.figma.com/api/mcp/asset/4ed57452-a6f0-4ef6-aa66-bd528550c461" alt="">
+      <div class="flyout-item-inner"><span class="flyout-item-title">Billing</span></div>
+    </div>
+    <div class="flyout-item flyout-item-icon">
+      <img src="https://www.figma.com/api/mcp/asset/0a8f1d9b-a086-4d39-864c-35a554756428" alt="">
+      <div class="flyout-item-inner"><span class="flyout-item-title">Account details</span></div>
+    </div>
+    <div class="flyout-divider"></div>
+    <div class="flyout-item flyout-item-icon">
+      <img src="https://www.figma.com/api/mcp/asset/9176d2e5-4820-43f7-a6a0-848c3ced28f4" alt="">
+      <div class="flyout-item-inner"><span class="flyout-item-title flyout-item-muted">Logout</span></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- end #flyout-panel -->
+
+<script>
+  const config = [
+    { triggerId: 'trigger-location', sectionId: 'flyout-location' },
+    { triggerId: 'trigger-stay',     sectionId: 'flyout-stay'     },
+    { triggerId: 'trigger-work',     sectionId: 'flyout-work'     },
+    { triggerId: 'trigger-meetings',   sectionId: 'flyout-meetings'   },
+    { triggerId: 'trigger-membership', sectionId: 'flyout-membership' },
+    { triggerId: 'trigger-help',     sectionId: 'flyout-help'     },
+    { triggerId: 'trigger-profile',  sectionId: 'flyout-profile'  },
+  ];
+
+  const panel = document.getElementById('flyout-panel');
+  let activeSection = null;
+  let activeTrigger = null;
+  let closeTimer    = null;
+
+  function getNavBottom() {
+    return document.getElementById('nav-container').getBoundingClientRect().bottom;
+  }
+
+  function positionPanel() {
+    panel.style.top = getNavBottom() + 'px';
+  }
+
+  function getSizeClass(section) {
+    if (section.classList.contains('flyout-xlwide')) return 'flyout-xlwide';
+    if (section.classList.contains('flyout-wide'))   return 'flyout-wide';
+    return 'flyout-narrow';
+  }
+
+  function showSection(triggerId, sectionId) {
+    clearTimeout(closeTimer);
+    const trigger = document.getElementById(triggerId);
+    const section = document.getElementById(sectionId);
+    if (!trigger || !section) return;
+
+    // Swap active trigger highlight
+    if (activeTrigger) activeTrigger.classList.remove('active');
+    trigger.classList.add('active');
+    activeTrigger = trigger;
+
+    // Swap section content instantly (display:contents — children become panel flex items)
+    if (activeSection) activeSection.classList.remove('active');
+    section.classList.add('active');
+    activeSection = section;
+
+    // Update panel size class so width/gap/flex-direction match the new section
+    panel.classList.remove('flyout-wide', 'flyout-xlwide', 'flyout-narrow');
+    panel.classList.add(getSizeClass(section));
+
+    // Align panel to header right edge
+    positionPanel();
+
+    // Show panel — already visible: no re-animation; hidden: animates in
+    panel.classList.add('show');
+  }
+
+  function scheduleFlyoutClose() {
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => {
+      panel.classList.remove('show');
+      if (activeSection) { activeSection.classList.remove('active'); activeSection = null; }
+      if (activeTrigger) { activeTrigger.classList.remove('active'); activeTrigger = null; }
+    }, 300);
+  }
+
+  config.forEach(({ triggerId, sectionId }) => {
+    const trigger = document.getElementById(triggerId);
+    if (!trigger) return;
+    trigger.addEventListener('mouseenter', () => showSection(triggerId, sectionId));
+    trigger.addEventListener('mouseleave', scheduleFlyoutClose);
+  });
+
+  panel.addEventListener('mouseenter', () => clearTimeout(closeTimer));
+  panel.addEventListener('mouseleave', scheduleFlyoutClose);
+
+  window.addEventListener('resize', () => {
+    if (panel.classList.contains('show')) positionPanel();
+  });
+
+  // Location flyout — crossfade featured image on city hover
+  const locationImgA = document.getElementById('flyout-location-img-a');
+  const locationImgB = document.getElementById('flyout-location-img-b');
+  const defaultLocationImgSrc = locationImgA?.getAttribute('src');
+  const roomImages = [
+    'Room images/business-stay-454x454.jpeg',
+    'Room images/hotel-stay-454x454.jpeg',
+    'Room images/long-stay-454x454.jpeg',
+    'Room images/student-stay-454x454.jpeg',
+  ];
+  const cityColumn = document.querySelector('.flyout-loc-city');
+  let locationFrontImg = locationImgA;
+  let locationBackImg = locationImgB;
+  let locationLoadId = 0;
+
+  function dissolveLocationImage(src) {
+    if (!locationFrontImg || !locationBackImg) return;
+    if (locationFrontImg.getAttribute('src') === src) return;
+
+    const loadId = ++locationLoadId;
+    const loader = new Image();
+    loader.onload = () => {
+      if (loadId !== locationLoadId) return;
+      locationBackImg.src = src;
+      locationBackImg.classList.add('is-visible');
+      locationFrontImg.classList.remove('is-visible');
+      locationFrontImg.setAttribute('aria-hidden', 'true');
+      locationBackImg.removeAttribute('aria-hidden');
+      [locationFrontImg, locationBackImg] = [locationBackImg, locationFrontImg];
+    };
+    loader.src = src;
+  }
+
+  function setRandomLocationImage() {
+    dissolveLocationImage(roomImages[Math.floor(Math.random() * roomImages.length)]);
+  }
+
+  function resetLocationImage() {
+    if (!defaultLocationImgSrc) return;
+    dissolveLocationImage(defaultLocationImgSrc);
+  }
+
+  cityColumn?.querySelectorAll('.flyout-item').forEach(item => {
+    item.addEventListener('mouseenter', setRandomLocationImage);
+  });
+  cityColumn?.addEventListener('mouseleave', resetLocationImage);
+
+  // Close on outside click
+  document.addEventListener('click', e => {
+    const triggers = config.map(c => document.getElementById(c.triggerId)).filter(Boolean);
+    if (!triggers.some(t => t.contains(e.target)) && !panel.contains(e.target)) {
+      panel.classList.remove('show');
+      if (activeSection) { activeSection.classList.remove('active'); activeSection = null; }
+      if (activeTrigger) { activeTrigger.classList.remove('active'); activeTrigger = null; }
+      clearTimeout(closeTimer);
+    }
+  });
+</script>
+</body>
+</html>
