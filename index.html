@@ -34,6 +34,7 @@
     --motion-flyout-hover-grace: 300ms;
     --motion-image-crossfade: 1000ms;
     --mobile-screen-width: 393px;
+    --mobile-screen-height: 852px;
     --mobile-screen-radius: 54px;
   }
 
@@ -839,11 +840,11 @@
   body.mobile-mode #mobile-viewport {
     display: block;
     position: fixed;
-    top: 0;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(-50%);
     width: var(--mobile-screen-width);
-    height: 100vh;
+    height: var(--mobile-screen-height);
     max-height: 100vh;
     border-radius: var(--mobile-screen-radius);
     overflow: hidden;
@@ -925,8 +926,8 @@
   /* ── Phone frame overlay ────────────────────────────────────────── */
   #phone-frame {
     display: none;
-    position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-    width: var(--mobile-screen-width); height: 100vh;
+    position: fixed; top: 50%; left: 50%; transform: translateX(-50%) translateY(-50%);
+    width: var(--mobile-screen-width); height: var(--mobile-screen-height);
     border-radius: var(--mobile-screen-radius);
     pointer-events: none;
     z-index: 1000;
