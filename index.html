@@ -1004,6 +1004,11 @@
     font-size: 13px; font-weight: 500; line-height: 18px;
     color: #fff; text-align: left;
   }
+  .dt-row-body { display: flex; flex-direction: column; gap: 2px; text-align: left; }
+  .dt-hint {
+    font-size: 11px; font-weight: 400; line-height: 15px;
+    color: rgba(255,255,255,0.45);
+  }
   .dt-switch {
     width: 34px; height: 20px; border-radius: 10px; flex-shrink: 0;
     background: rgba(255,255,255,0.18); position: relative;
@@ -1433,9 +1438,7 @@
       <div class="blog-pagination">
         <div class="blog-pagination-side">
           <button class="blog-pagination-btn" aria-label="Previous page">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M12.5 15L7.5 10L12.5 5" stroke="#1a1510" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <img src="assets/arrow-left.svg" width="20" height="20" alt="" aria-hidden="true">
           </button>
         </div>
         <div class="blog-pagination-numbers">
@@ -1448,9 +1451,7 @@
         <span class="blog-pagination-page-text">Page 1 of 5</span>
         <div class="blog-pagination-side blog-pagination-side--right">
           <button class="blog-pagination-btn" aria-label="Next page">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M7.5 5L12.5 10L7.5 15" stroke="#1a1510" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <img src="assets/arrow-right.svg" width="20" height="20" alt="" aria-hidden="true">
           </button>
         </div>
       </div>
@@ -1781,6 +1782,13 @@
       <button class="dt-row" onclick="toggleMobileMode()" role="menuitem">
         <span class="dt-label">Mobile view</span>
         <span class="dt-switch" id="dt-mobile"></span>
+      </button>
+      <button class="dt-row" onclick="togglePastelDuotone()" role="menuitem">
+        <span class="dt-row-body">
+          <span class="dt-label">Pastel duotone</span>
+          <span class="dt-hint">Soft hover accents on blog thumbnails</span>
+        </span>
+        <span class="dt-switch" id="dt-pastel"></span>
       </button>
     </div>
     <div class="dt-divider"></div>
@@ -2349,10 +2357,19 @@
   });
 
   // ── Blog card duotone colours ────────────────────────────────────
-  const duotoneColors = ['#3B8544', '#E12942', '#0A350F', '#5C2000', '#3A71DE', '#002C60'];
-  document.querySelectorAll('.blog-card-image-bg').forEach(el => {
-    el.style.background = duotoneColors[Math.floor(Math.random() * duotoneColors.length)];
-  });
+  const duotoneColorsContrast = ['#3B8544', '#E12942', '#0A350F', '#5C2000', '#3A71DE', '#002C60'];
+  const duotoneColorsPastel   = ['#FFCFD6', '#C0D5FF', '#FFC300', '#F4CEA0', '#E8EB80'];
+
+  function applyBlogDuotoneColors() {
+    const palette = document.body.classList.contains('blog-pastel-duotone')
+      ? duotoneColorsPastel
+      : duotoneColorsContrast;
+    document.querySelectorAll('.blog-card-image-bg').forEach(el => {
+      el.style.background = palette[Math.floor(Math.random() * palette.length)];
+    });
+  }
+
+  applyBlogDuotoneColors();
 
   // ── Dev tools panel ─────────────────────────────────────────────
   let devtoolsClickCount = 0;
@@ -2370,6 +2387,14 @@
     const b = document.body;
     document.getElementById('dt-blog').classList.toggle('on', b.classList.contains('blog-mode'));
     document.getElementById('dt-mobile').classList.toggle('on', b.classList.contains('mobile-mode'));
+    document.getElementById('dt-pastel').classList.toggle('on', b.classList.contains('blog-pastel-duotone'));
+  }
+
+  function togglePastelDuotone() {
+    document.body.classList.toggle('blog-pastel-duotone');
+    applyBlogDuotoneColors();
+    syncDevtools();
+    updateURL();
   }
 
   function updateURL() {
@@ -2377,6 +2402,7 @@
     const p = new URLSearchParams();
     p.set('blog',   b.classList.contains('blog-mode')     ? '1' : '0');
     p.set('mobile', b.classList.contains('mobile-mode')   ? '1' : '0');
+    p.set('pastel', b.classList.contains('blog-pastel-duotone') ? '1' : '0');
     p.set('header', b.classList.contains('header-hidden') ? '0' : '1');
     history.replaceState(null, '', '?' + p.toString());
   }
@@ -2501,6 +2527,10 @@
     if (p.get('mobile') === '1') {
       document.body.classList.add('mobile-mode');
       if (document.body.classList.contains('blog-mode')) initScrollCardObserver();
+    }
+    if (p.get('pastel') === '1') {
+      document.body.classList.add('blog-pastel-duotone');
+      applyBlogDuotoneColors();
     }
     if (p.get('header') === '1') {
       document.body.classList.remove('header-hidden');
