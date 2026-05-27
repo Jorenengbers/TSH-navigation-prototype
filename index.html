@@ -28,10 +28,13 @@
     --motion-featured-enter-offset: 50ms;
     --motion-item-ease: cubic-bezier(0.33, 0, 0, 1);
     --motion-item-enter-distance: 3.125rem;
+    --motion-item-switch: 180ms;
     --motion-flyout-duration: var(--motion-item-enter);
     --motion-flyout-ease: var(--motion-item-ease);
     --motion-flyout-hover-grace: 300ms;
     --motion-image-crossfade: 1000ms;
+    --mobile-screen-width: 393px;
+    --mobile-screen-radius: 54px;
   }
 
   body {
@@ -628,13 +631,13 @@
     border-radius: 4px; pointer-events: none;
     transition: inset 400ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-  @media (hover: hover) and (min-width: 768px) {
-    .blog-card:hover .blog-card-image-bg { inset: 12.25px -12px -12.5px 12px; }
-    .blog-card:hover .blog-card-photo-wrap img { transform: scale(1.04); }
-    .blog-card:hover .blog-card-arrow-area { opacity: 1; }
-    .blog-card:hover .arrow-squircle { transform: rotate(0deg); }
-    .blog-card:hover .arrow-icon-exit  { transform: translateX(22px) scale(0.3); opacity: 0; }
-    .blog-card:hover .arrow-icon-enter { transform: translateX(0)    scale(1);   opacity: 1; }
+  @media (hover: hover) and (pointer: fine) and (min-width: 768px) {
+    body:not(.mobile-mode) .blog-card:hover .blog-card-image-bg { inset: 12.25px -12px -12.5px 12px; }
+    body:not(.mobile-mode) .blog-card:hover .blog-card-photo-wrap img { transform: scale(1.04); }
+    body:not(.mobile-mode) .blog-card:hover .blog-card-arrow-area { opacity: 1; }
+    body:not(.mobile-mode) .blog-card:hover .arrow-squircle { transform: rotate(0deg); }
+    body:not(.mobile-mode) .blog-card:hover .arrow-icon-exit  { transform: translateX(22px) scale(0.3); opacity: 0; }
+    body:not(.mobile-mode) .blog-card:hover .arrow-icon-enter { transform: translateX(0)    scale(1);   opacity: 1; }
   }
   .blog-card-photo-wrap {
     width: 100%; aspect-ratio: 4 / 3;
@@ -826,27 +829,212 @@
     }
   }
 
-  /* ── Dev mode toggle ────────────────────────────────────────────── */
-  #dev-mode-btn {
-    position: fixed; bottom: 24px; left: 24px; z-index: 500;
+  /* ── Mobile mode (simulated on desktop) ────────────────────────── */
+  #mobile-viewport { display: contents; }
+
+  body.mobile-mode {
+    background: #111;
+    overflow: hidden;
+  }
+  body.mobile-mode #mobile-viewport {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: var(--mobile-screen-width);
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: var(--mobile-screen-radius);
+    overflow: hidden;
+    z-index: 0;
+  }
+  body.mobile-mode.blog-mode #mobile-viewport {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  body.mobile-mode .hero {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: auto;
+    transform: none;
+    width: 100%;
+    border-radius: 0;
+  }
+  body.mobile-mode.blog-mode #blog-page {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    min-height: 100vh;
+    overflow: visible;
+    border-radius: 0;
+  }
+  body.mobile-mode.blog-mode .blog-hero {
+    border-radius: var(--mobile-screen-radius) var(--mobile-screen-radius) 0 0;
+  }
+  /* Nav: full width inside the clipped viewport */
+  body.mobile-mode .nav-container {
+    left: 0;
+    right: 0;
+    transform: none;
+    width: auto;
+    padding: 60px 12px 16px;
+    align-items: center;
+  }
+  body.mobile-mode.header-hidden .nav-container {
+    transform: translateY(-10px);
+  }
+  body.mobile-mode .nav-logo { width: 50px; height: 50px; margin-right: -5px; }
+  body.mobile-mode .nav-pill { padding: 8px 8px 8px 20px; box-shadow: 0 0 0 1px rgba(0,0,0,0.32); }
+  body.mobile-mode .nav-items { gap: 24px; height: auto; }
+  body.mobile-mode .nav-location-text { font-size: 12px; font-weight: 500; line-height: 18px; }
+  body.mobile-mode .nav-item,
+  body.mobile-mode .nav-buttons { display: none; }
+  body.mobile-mode .nav-hamburger-btn { display: flex; }
+  /* Blog layout */
+  body.mobile-mode .blog-hero { padding: 200px 16px 80px; }
+  body.mobile-mode .blog-hero-bg img { width: 122.59%; height: 178.86%; left: -11.3%; top: -39.43%; }
+  body.mobile-mode .blog-hero-title { font-size: 72px; letter-spacing: -0.72px; text-align: center; white-space: normal; width: 100%; }
+  body.mobile-mode .blog-section { padding: 48px 0; }
+  body.mobile-mode .blog-container { padding: 0 16px; gap: 40px; }
+  body.mobile-mode .blog-grid { grid-template-columns: 1fr; column-gap: 0; row-gap: 64px; }
+  body.mobile-mode .blog-card--r1-large,
+  body.mobile-mode .blog-card--r1-small,
+  body.mobile-mode .blog-card--r2-small,
+  body.mobile-mode .blog-card--r2-large,
+  body.mobile-mode .blog-card--r3-large,
+  body.mobile-mode .blog-card--r3-small,
+  body.mobile-mode .blog-card--r4-small,
+  body.mobile-mode .blog-card--r4-large { grid-column: 1 / -1; grid-row: auto; }
+  body.mobile-mode .blog-card { gap: 32px; }
+  body.mobile-mode .blog-card-title { font-size: 30px; }
+  body.mobile-mode .blog-pagination { justify-content: space-between; padding-top: 24px; gap: 0; }
+  body.mobile-mode .blog-pagination-side { flex: 0 0 auto; }
+  body.mobile-mode .blog-pagination-numbers { display: none; }
+  body.mobile-mode .blog-pagination-page-text { display: block; }
+  /* Scroll-active state */
+  body.mobile-mode .blog-card--scroll-active .blog-card-image-bg { inset: 8px -8px -8px 8px; }
+  body.mobile-mode .blog-card--scroll-active .blog-card-photo-wrap img { transform: scale(1.04); }
+  body.mobile-mode .blog-card--scroll-active .blog-card-arrow-area { opacity: 1; }
+  body.mobile-mode .blog-card--scroll-active .arrow-squircle { transform: rotate(0deg); }
+  body.mobile-mode .blog-card--scroll-active .arrow-icon-exit { transform: translateX(22px) scale(0.3); opacity: 0; }
+  body.mobile-mode .blog-card--scroll-active .arrow-icon-enter { transform: translateX(0) scale(1); opacity: 1; }
+
+  /* ── Phone frame overlay ────────────────────────────────────────── */
+  #phone-frame {
+    display: none;
+    position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+    width: var(--mobile-screen-width); height: 100vh;
+    border-radius: var(--mobile-screen-radius);
+    pointer-events: none;
+    z-index: 1000;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.07),
+      0 0 0 11px #1e1e20,
+      0 0 0 12px #2e2e32,
+      0 0 0 14px #080808,
+      0 60px 160px rgba(0,0,0,0.95),
+      0 0 80px rgba(0,0,0,0.6);
+  }
+  body.mobile-mode #phone-frame { display: block; }
+
+  .phone-dynamic-island {
+    position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
+    width: 126px; height: 37px;
+    background: #000; border-radius: 18.5px;
+  }
+  .phone-status-time {
+    position: absolute; top: 16px; left: 30px;
+    font-size: 15px; font-weight: 600; line-height: 20px; letter-spacing: -0.3px;
+    color: #fff; font-variant-numeric: tabular-nums;
+  }
+  .phone-status-right {
+    position: absolute; top: 18px; right: 20px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .phone-home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px;
+    background: rgba(255,255,255,0.32); border-radius: 2.5px;
+  }
+
+  /* ── Dev tools panel ────────────────────────────────────────────── */
+  #devtools {
+    position: fixed; bottom: 24px; left: 24px; z-index: 1100;
+    font-family: inherit;
+  }
+  #devtools-trigger {
     display: flex; align-items: center; gap: 8px;
-    background: #fff; border: none; border-radius: 9999px;
+    background: #1a1510; color: #fff; border: none; border-radius: 9999px;
     padding: 10px 16px 10px 12px;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
     cursor: pointer; font-family: inherit; font-size: 13px;
-    font-weight: 500; color: #1a1510; letter-spacing: 0.02em;
-    white-space: nowrap; line-height: 20px;
-    transition: background 200ms, color 200ms, box-shadow 200ms;
+    font-weight: 500; letter-spacing: 0.01em; line-height: 20px;
+    white-space: nowrap; transition: box-shadow 150ms;
   }
-  #dev-mode-btn:hover {
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.16), 0 6px 20px rgba(0,0,0,0.16);
+  #devtools-trigger:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.1);
   }
-  .dev-mode-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #c4c0ba; flex-shrink: 0; transition: background 200ms;
+  #devtools-panel {
+    position: absolute; bottom: calc(100% + 8px); left: 0;
+    background: #1a1510; border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; min-width: 216px;
+    box-shadow: 0 20px 56px rgba(0,0,0,0.55);
+    transform-origin: bottom left;
+    transform: scale(0.92) translateY(8px);
+    opacity: 0; pointer-events: none;
+    transition: transform 180ms cubic-bezier(0.34,1.2,0.64,1), opacity 140ms ease;
   }
-  body.blog-mode #dev-mode-btn { background: #1a1510; color: #fff; }
-  body.blog-mode .dev-mode-dot { background: #ffc300; }
+  #devtools-panel.open {
+    transform: scale(1) translateY(0);
+    opacity: 1; pointer-events: auto;
+  }
+  .dt-section { padding: 6px; }
+  .dt-row {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; padding: 9px 10px; gap: 12px;
+    background: none; border: none; border-radius: 9px;
+    cursor: pointer; font-family: inherit; transition: background 120ms;
+  }
+  .dt-row:hover { background: rgba(255,255,255,0.07); }
+  .dt-label {
+    font-size: 13px; font-weight: 500; line-height: 18px;
+    color: #fff; text-align: left;
+  }
+  .dt-switch {
+    width: 34px; height: 20px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(255,255,255,0.18); position: relative;
+    transition: background 180ms;
+  }
+  .dt-switch::after {
+    content: ''; position: absolute;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; top: 2px; left: 2px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    transition: transform 180ms cubic-bezier(0.34,1.2,0.64,1);
+  }
+  .dt-switch.on { background: #ffc300; }
+  .dt-switch.on::after { transform: translateX(14px); }
+  .dt-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 0 6px; }
+  .dt-copy-btn {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 9px 10px;
+    background: none; border: none; border-radius: 9px;
+    color: rgba(255,255,255,0.45); cursor: pointer;
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    line-height: 18px; transition: background 120ms, color 120ms;
+    text-align: left;
+  }
+  .dt-copy-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8); }
+  .dt-copy-btn.copied { color: #4ade80; }
+
+  /* ── Header visibility toggle ────────────────────────────────────── */
+  .nav-container { transition: transform 240ms ease, opacity 240ms ease; }
+  body.header-hidden .nav-container {
+    transform: translateY(-10px); opacity: 0; pointer-events: none;
+  }
 
   /* ── Flyout item entrance animation ────────────────────────────── */
   @keyframes flyout-item-enter {
@@ -858,6 +1046,10 @@
       opacity: 1;
       transform: translateY(0);
     }
+  }
+  @keyframes flyout-item-dissolve {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   /* Transparent hover bridge — fills gap between nav pill and flyout */
@@ -874,6 +1066,8 @@
 </style>
 </head>
 <body class="blog-mode">
+
+<div id="mobile-viewport">
 
 <!-- ── Hero background ───────────────────────────────────────────── -->
 <div class="hero">
@@ -925,6 +1119,346 @@
     </div>
   </div>
 </nav>
+
+<!-- ── Blog overview page (context preview) ──────────────────────── -->
+<div id="blog-page">
+
+  <!-- Blog hero -->
+  <div class="blog-hero">
+    <div class="blog-hero-bg">
+      <img src="https://www.figma.com/api/mcp/asset/dfe1ca78-36b2-454f-8677-18bd2526484c" alt="">
+    </div>
+    <div class="blog-hero-content">
+      <h1 class="blog-hero-title">The Social Hub Blog</h1>
+    </div>
+  </div>
+
+  <!-- Blog grid section -->
+  <div class="blog-section">
+    <div class="blog-container">
+      <div class="blog-grid">
+
+        <!-- Row 1: Large left -->
+        <a class="blog-card blog-card--r1-large" href="#">
+          <div class="blog-card-image">
+            <div class="blog-card-image-bg"></div>
+            <div class="blog-card-photo-wrap">
+              <img src="assets/blog-photo-1.jpg" alt="" loading="lazy">
+            </div>
+            <div class="blog-card-arrow-area">
+              <div class="blog-card-arrow-btn">
+                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
+                </svg>
+                <div class="arrow-icon-clip">
+                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="blog-card-content">
+            <div class="blog-card-badge">
+              <span class="blog-card-badge-text">Digital nomads</span>
+              <span class="blog-card-dot"></span>
+              <span class="blog-card-badge-text">2 May 2026</span>
+            </div>
+            <div class="blog-card-inner-content">
+              <h2 class="blog-card-title">Better together: how community improves workplace wellness</h2>
+              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Row 1: Small right -->
+        <a class="blog-card blog-card--r1-small" href="#">
+          <div class="blog-card-image">
+            <div class="blog-card-image-bg"></div>
+            <div class="blog-card-photo-wrap">
+              <img src="assets/blog-photo-2.jpg" alt="" loading="lazy">
+            </div>
+            <div class="blog-card-arrow-area">
+              <div class="blog-card-arrow-btn">
+                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
+                </svg>
+                <div class="arrow-icon-clip">
+                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="blog-card-content">
+            <div class="blog-card-badge">
+              <span class="blog-card-badge-text">City guides</span>
+              <span class="blog-card-dot"></span>
+              <span class="blog-card-badge-text">2 May 2026</span>
+            </div>
+            <div class="blog-card-inner-content">
+              <h2 class="blog-card-title">Student guide to Amsterdam</h2>
+              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Row 2: Small left -->
+        <a class="blog-card blog-card--r2-small" href="#">
+          <div class="blog-card-image">
+            <div class="blog-card-image-bg"></div>
+            <div class="blog-card-photo-wrap">
+              <img src="assets/blog-photo-3.jpg" alt="" loading="lazy">
+            </div>
+            <div class="blog-card-arrow-area">
+              <div class="blog-card-arrow-btn">
+                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
+                </svg>
+                <div class="arrow-icon-clip">
+                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="blog-card-content">
+            <div class="blog-card-badge">
+              <span class="blog-card-badge-text">Wellbeing</span>
+              <span class="blog-card-dot"></span>
+              <span class="blog-card-badge-text">28 Apr 2026</span>
+            </div>
+            <div class="blog-card-inner-content">
+              <h2 class="blog-card-title">Better together: how community improves workplace wellness</h2>
+              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Row 2: Large right -->
+        <a class="blog-card blog-card--r2-large" href="#">
+          <div class="blog-card-image">
+            <div class="blog-card-image-bg"></div>
+            <div class="blog-card-photo-wrap">
+              <img src="assets/blog-photo-1.jpg" alt="" loading="lazy">
+            </div>
+            <div class="blog-card-arrow-area">
+              <div class="blog-card-arrow-btn">
+                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
+                </svg>
+                <div class="arrow-icon-clip">
+                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="blog-card-content">
+            <div class="blog-card-badge">
+              <span class="blog-card-badge-text">City guides</span>
+              <span class="blog-card-dot"></span>
+              <span class="blog-card-badge-text">21 Apr 2026</span>
+            </div>
+            <div class="blog-card-inner-content">
+              <h2 class="blog-card-title">Student guide to Amsterdam</h2>
+              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Row 3: Large left -->
+        <a class="blog-card blog-card--r3-large" href="#">
+          <div class="blog-card-image">
+            <div class="blog-card-image-bg"></div>
+            <div class="blog-card-photo-wrap">
+              <img src="assets/blog-photo-1.jpg" alt="" loading="lazy">
+            </div>
+            <div class="blog-card-arrow-area">
+              <div class="blog-card-arrow-btn">
+                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
+                </svg>
+                <div class="arrow-icon-clip">
+                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="blog-card-content">
+            <div class="blog-card-badge">
+              <span class="blog-card-badge-text">Digital nomads</span>
+              <span class="blog-card-dot"></span>
+              <span class="blog-card-badge-text">14 Apr 2026</span>
+            </div>
+            <div class="blog-card-inner-content">
+              <h2 class="blog-card-title">Better together: how community improves workplace wellness</h2>
+              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Row 3: Small right -->
+        <a class="blog-card blog-card--r3-small" href="#">
+          <div class="blog-card-image">
+            <div class="blog-card-image-bg"></div>
+            <div class="blog-card-photo-wrap">
+              <img src="assets/blog-photo-2.jpg" alt="" loading="lazy">
+            </div>
+            <div class="blog-card-arrow-area">
+              <div class="blog-card-arrow-btn">
+                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
+                </svg>
+                <div class="arrow-icon-clip">
+                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="blog-card-content">
+            <div class="blog-card-badge">
+              <span class="blog-card-badge-text">City guides</span>
+              <span class="blog-card-dot"></span>
+              <span class="blog-card-badge-text">7 Apr 2026</span>
+            </div>
+            <div class="blog-card-inner-content">
+              <h2 class="blog-card-title">Student guide to Amsterdam</h2>
+              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Row 4: Small left -->
+        <a class="blog-card blog-card--r4-small" href="#">
+          <div class="blog-card-image">
+            <div class="blog-card-image-bg"></div>
+            <div class="blog-card-photo-wrap">
+              <img src="assets/blog-photo-3.jpg" alt="" loading="lazy">
+            </div>
+            <div class="blog-card-arrow-area">
+              <div class="blog-card-arrow-btn">
+                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
+                </svg>
+                <div class="arrow-icon-clip">
+                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="blog-card-content">
+            <div class="blog-card-badge">
+              <span class="blog-card-badge-text">Wellbeing</span>
+              <span class="blog-card-dot"></span>
+              <span class="blog-card-badge-text">31 Mar 2026</span>
+            </div>
+            <div class="blog-card-inner-content">
+              <h2 class="blog-card-title">Better together: how community improves workplace wellness</h2>
+              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Row 4: Large right -->
+        <a class="blog-card blog-card--r4-large" href="#">
+          <div class="blog-card-image">
+            <div class="blog-card-image-bg"></div>
+            <div class="blog-card-photo-wrap">
+              <img src="assets/blog-photo-1.jpg" alt="" loading="lazy">
+            </div>
+            <div class="blog-card-arrow-area">
+              <div class="blog-card-arrow-btn">
+                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
+                </svg>
+                <div class="arrow-icon-clip">
+                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="blog-card-content">
+            <div class="blog-card-badge">
+              <span class="blog-card-badge-text">City guides</span>
+              <span class="blog-card-dot"></span>
+              <span class="blog-card-badge-text">24 Mar 2026</span>
+            </div>
+            <div class="blog-card-inner-content">
+              <h2 class="blog-card-title">Student guide to Amsterdam</h2>
+              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
+            </div>
+          </div>
+        </a>
+
+      </div><!-- end .blog-grid -->
+
+      <!-- Pagination -->
+      <div class="blog-pagination">
+        <div class="blog-pagination-side">
+          <button class="blog-pagination-btn" aria-label="Previous page">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M12.5 15L7.5 10L12.5 5" stroke="#1a1510" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="blog-pagination-numbers">
+          <button class="blog-pagination-num active">1</button>
+          <button class="blog-pagination-num">2</button>
+          <button class="blog-pagination-num">3</button>
+          <button class="blog-pagination-num">4</button>
+          <button class="blog-pagination-num">5</button>
+        </div>
+        <span class="blog-pagination-page-text">Page 1 of 5</span>
+        <div class="blog-pagination-side blog-pagination-side--right">
+          <button class="blog-pagination-btn" aria-label="Next page">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M7.5 5L12.5 10L7.5 15" stroke="#1a1510" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- end .blog-container -->
+  </div><!-- end .blog-section -->
+
+</div><!-- end #blog-page -->
+</div><!-- end #mobile-viewport -->
 
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- FLYOUT PANELS                                                   -->
@@ -1196,350 +1730,74 @@
 <!-- Transparent bridge fills the gap between nav pill and flyout so hover is continuous -->
 <div id="flyout-bridge"></div>
 
-<!-- ── Blog overview page (context preview) ──────────────────────── -->
-<div id="blog-page">
+<!-- ── iPhone 17 Pro frame overlay (mobile mode simulation) ─────── -->
+<div id="phone-frame" aria-hidden="true">
+  <div class="phone-dynamic-island"></div>
+  <span class="phone-status-time">9:41</span>
+  <div class="phone-status-right">
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="white" aria-hidden="true">
+      <rect x="0" y="9" width="3" height="3" rx="0.75"/>
+      <rect x="4.5" y="6" width="3" height="6" rx="0.75"/>
+      <rect x="9" y="3" width="3" height="9" rx="0.75"/>
+      <rect x="13.5" y="0" width="3" height="12" rx="0.75" opacity="0.3"/>
+    </svg>
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="none" aria-hidden="true">
+      <circle cx="8" cy="10.5" r="1.25" fill="white"/>
+      <path d="M4.8 7.8A4.5 4.5 0 0 1 11.2 7.8" stroke="white" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+      <path d="M2.3 5.5A7.5 7.5 0 0 1 13.7 5.5" stroke="white" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.65"/>
+      <path d="M0 3.2A10.5 10.5 0 0 1 16 3.2" stroke="white" stroke-width="1.4" stroke-linecap="round" fill="none" opacity="0.35"/>
+    </svg>
+    <svg width="27" height="13" viewBox="0 0 27 13" fill="none" aria-hidden="true">
+      <rect x="0.5" y="0.5" width="22" height="12" rx="3.5" stroke="white" stroke-opacity="0.35"/>
+      <rect x="23" y="4" width="3.5" height="5" rx="1.25" fill="white" fill-opacity="0.4"/>
+      <rect x="2" y="2" width="16" height="9" rx="2" fill="white"/>
+    </svg>
+  </div>
+  <div class="phone-home-indicator"></div>
+</div><!-- end #phone-frame -->
 
-  <!-- Blog hero -->
-  <div class="blog-hero">
-    <div class="blog-hero-bg">
-      <img src="https://www.figma.com/api/mcp/asset/dfe1ca78-36b2-454f-8677-18bd2526484c" alt="">
+<!-- ── Dev tools panel ───────────────────────────────────────────── -->
+<div id="devtools">
+  <button id="devtools-trigger" onclick="toggleDevtools()" aria-label="Preview settings">
+    <svg width="15" height="12" viewBox="0 0 15 12" fill="none" aria-hidden="true">
+      <line x1="0" y1="1.5" x2="8.5" y2="1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="10.5" cy="1.5" r="1.75" fill="currentColor"/>
+      <line x1="12.25" y1="1.5" x2="15" y2="1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="0" y1="6" x2="3" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="5" cy="6" r="1.75" fill="currentColor"/>
+      <line x1="6.75" y1="6" x2="15" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="0" y1="10.5" x2="10.5" y2="10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="12.5" cy="10.5" r="1.75" fill="currentColor"/>
+    </svg>
+    Preview
+  </button>
+  <div id="devtools-panel" role="menu">
+    <div class="dt-section">
+      <button class="dt-row" onclick="toggleBlogMode()" role="menuitem">
+        <span class="dt-label">Blog page</span>
+        <span class="dt-switch on" id="dt-blog"></span>
+      </button>
+      <button class="dt-row" onclick="toggleMobileMode()" role="menuitem">
+        <span class="dt-label">Mobile view</span>
+        <span class="dt-switch" id="dt-mobile"></span>
+      </button>
+      <button class="dt-row" onclick="toggleHeaderMode()" role="menuitem">
+        <span class="dt-label">Header</span>
+        <span class="dt-switch on" id="dt-header"></span>
+      </button>
     </div>
-    <div class="blog-hero-content">
-      <h1 class="blog-hero-title">The Social Hub Blog</h1>
+    <div class="dt-divider"></div>
+    <div class="dt-section">
+      <button class="dt-copy-btn" id="dt-copy-btn" onclick="copyShareLink()" role="menuitem">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M5.5 8.5a3.25 3.25 0 0 0 4.5 0l1.25-1.25a3.25 3.25 0 0 0-4.5-4.5L6 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M8.5 5.5a3.25 3.25 0 0 0-4.5 0L2.75 6.75a3.25 3.25 0 0 0 4.5 4.5L8 10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span id="dt-copy-label">Copy link</span>
+      </button>
     </div>
   </div>
-
-  <!-- Blog grid section -->
-  <div class="blog-section">
-    <div class="blog-container">
-      <div class="blog-grid">
-
-        <!-- Row 1: Large left -->
-        <a class="blog-card blog-card--r1-large" href="#">
-          <div class="blog-card-image">
-            <div class="blog-card-image-bg"></div>
-            <div class="blog-card-photo-wrap">
-              <img src="assets/blog-photo-1.jpg" alt="" loading="lazy">
-            </div>
-            <div class="blog-card-arrow-area">
-              <div class="blog-card-arrow-btn">
-                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
-                </svg>
-                <div class="arrow-icon-clip">
-                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="blog-card-content">
-            <div class="blog-card-badge">
-              <span class="blog-card-badge-text">Digital nomads</span>
-              <span class="blog-card-dot"></span>
-              <span class="blog-card-badge-text">2 May</span>
-            </div>
-            <div class="blog-card-inner-content">
-              <h2 class="blog-card-title">Better together: how community improves workplace wellness</h2>
-              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
-            </div>
-          </div>
-        </a>
-
-        <!-- Row 1: Small right -->
-        <a class="blog-card blog-card--r1-small" href="#">
-          <div class="blog-card-image">
-            <div class="blog-card-image-bg"></div>
-            <div class="blog-card-photo-wrap">
-              <img src="assets/blog-photo-2.jpg" alt="" loading="lazy">
-            </div>
-            <div class="blog-card-arrow-area">
-              <div class="blog-card-arrow-btn">
-                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
-                </svg>
-                <div class="arrow-icon-clip">
-                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="blog-card-content">
-            <div class="blog-card-badge">
-              <span class="blog-card-badge-text">City guides</span>
-              <span class="blog-card-dot"></span>
-              <span class="blog-card-badge-text">2 May</span>
-            </div>
-            <div class="blog-card-inner-content">
-              <h2 class="blog-card-title">Student guide to Amsterdam</h2>
-              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
-            </div>
-          </div>
-        </a>
-
-        <!-- Row 2: Small left -->
-        <a class="blog-card blog-card--r2-small" href="#">
-          <div class="blog-card-image">
-            <div class="blog-card-image-bg"></div>
-            <div class="blog-card-photo-wrap">
-              <img src="assets/blog-photo-3.jpg" alt="" loading="lazy">
-            </div>
-            <div class="blog-card-arrow-area">
-              <div class="blog-card-arrow-btn">
-                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
-                </svg>
-                <div class="arrow-icon-clip">
-                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="blog-card-content">
-            <div class="blog-card-badge">
-              <span class="blog-card-badge-text">Wellbeing</span>
-              <span class="blog-card-dot"></span>
-              <span class="blog-card-badge-text">28 Apr</span>
-            </div>
-            <div class="blog-card-inner-content">
-              <h2 class="blog-card-title">Better together: how community improves workplace wellness</h2>
-              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
-            </div>
-          </div>
-        </a>
-
-        <!-- Row 2: Large right -->
-        <a class="blog-card blog-card--r2-large" href="#">
-          <div class="blog-card-image">
-            <div class="blog-card-image-bg"></div>
-            <div class="blog-card-photo-wrap">
-              <img src="assets/blog-photo-1.jpg" alt="" loading="lazy">
-            </div>
-            <div class="blog-card-arrow-area">
-              <div class="blog-card-arrow-btn">
-                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
-                </svg>
-                <div class="arrow-icon-clip">
-                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="blog-card-content">
-            <div class="blog-card-badge">
-              <span class="blog-card-badge-text">City guides</span>
-              <span class="blog-card-dot"></span>
-              <span class="blog-card-badge-text">21 Apr</span>
-            </div>
-            <div class="blog-card-inner-content">
-              <h2 class="blog-card-title">Student guide to Amsterdam</h2>
-              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
-            </div>
-          </div>
-        </a>
-
-        <!-- Row 3: Large left -->
-        <a class="blog-card blog-card--r3-large" href="#">
-          <div class="blog-card-image">
-            <div class="blog-card-image-bg"></div>
-            <div class="blog-card-photo-wrap">
-              <img src="assets/blog-photo-1.jpg" alt="" loading="lazy">
-            </div>
-            <div class="blog-card-arrow-area">
-              <div class="blog-card-arrow-btn">
-                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
-                </svg>
-                <div class="arrow-icon-clip">
-                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="blog-card-content">
-            <div class="blog-card-badge">
-              <span class="blog-card-badge-text">Digital nomads</span>
-              <span class="blog-card-dot"></span>
-              <span class="blog-card-badge-text">14 Apr</span>
-            </div>
-            <div class="blog-card-inner-content">
-              <h2 class="blog-card-title">Better together: how community improves workplace wellness</h2>
-              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
-            </div>
-          </div>
-        </a>
-
-        <!-- Row 3: Small right -->
-        <a class="blog-card blog-card--r3-small" href="#">
-          <div class="blog-card-image">
-            <div class="blog-card-image-bg"></div>
-            <div class="blog-card-photo-wrap">
-              <img src="assets/blog-photo-2.jpg" alt="" loading="lazy">
-            </div>
-            <div class="blog-card-arrow-area">
-              <div class="blog-card-arrow-btn">
-                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
-                </svg>
-                <div class="arrow-icon-clip">
-                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="blog-card-content">
-            <div class="blog-card-badge">
-              <span class="blog-card-badge-text">City guides</span>
-              <span class="blog-card-dot"></span>
-              <span class="blog-card-badge-text">7 Apr</span>
-            </div>
-            <div class="blog-card-inner-content">
-              <h2 class="blog-card-title">Student guide to Amsterdam</h2>
-              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
-            </div>
-          </div>
-        </a>
-
-        <!-- Row 4: Small left -->
-        <a class="blog-card blog-card--r4-small" href="#">
-          <div class="blog-card-image">
-            <div class="blog-card-image-bg"></div>
-            <div class="blog-card-photo-wrap">
-              <img src="assets/blog-photo-3.jpg" alt="" loading="lazy">
-            </div>
-            <div class="blog-card-arrow-area">
-              <div class="blog-card-arrow-btn">
-                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
-                </svg>
-                <div class="arrow-icon-clip">
-                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="blog-card-content">
-            <div class="blog-card-badge">
-              <span class="blog-card-badge-text">Wellbeing</span>
-              <span class="blog-card-dot"></span>
-              <span class="blog-card-badge-text">31 Mar</span>
-            </div>
-            <div class="blog-card-inner-content">
-              <h2 class="blog-card-title">Better together: how community improves workplace wellness</h2>
-              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
-            </div>
-          </div>
-        </a>
-
-        <!-- Row 4: Large right -->
-        <a class="blog-card blog-card--r4-large" href="#">
-          <div class="blog-card-image">
-            <div class="blog-card-image-bg"></div>
-            <div class="blog-card-photo-wrap">
-              <img src="assets/blog-photo-1.jpg" alt="" loading="lazy">
-            </div>
-            <div class="blog-card-arrow-area">
-              <div class="blog-card-arrow-btn">
-                <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z" fill="white"/>
-                </svg>
-                <div class="arrow-icon-clip">
-                  <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                  <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke="#1A1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="blog-card-content">
-            <div class="blog-card-badge">
-              <span class="blog-card-badge-text">City guides</span>
-              <span class="blog-card-dot"></span>
-              <span class="blog-card-badge-text">24 Mar</span>
-            </div>
-            <div class="blog-card-inner-content">
-              <h2 class="blog-card-title">Student guide to Amsterdam</h2>
-              <p class="blog-card-desc">How do you create compelling presentations that wow your colleagues and impress your managers?</p>
-            </div>
-          </div>
-        </a>
-
-      </div><!-- end .blog-grid -->
-
-      <!-- Pagination -->
-      <div class="blog-pagination">
-        <div class="blog-pagination-side">
-          <button class="blog-pagination-btn" aria-label="Previous page">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M12.5 15L7.5 10L12.5 5" stroke="#1a1510" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-        <div class="blog-pagination-numbers">
-          <button class="blog-pagination-num active">1</button>
-          <button class="blog-pagination-num">2</button>
-          <button class="blog-pagination-num">3</button>
-          <button class="blog-pagination-num">4</button>
-          <button class="blog-pagination-num">5</button>
-        </div>
-        <span class="blog-pagination-page-text">Page 1 of 5</span>
-        <div class="blog-pagination-side blog-pagination-side--right">
-          <button class="blog-pagination-btn" aria-label="Next page">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M7.5 5L12.5 10L7.5 15" stroke="#1a1510" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-    </div><!-- end .blog-container -->
-  </div><!-- end .blog-section -->
-
-</div><!-- end #blog-page -->
-
-<!-- ── Dev mode toggle ────────────────────────────────────────────── -->
-<button id="dev-mode-btn" onclick="toggleBlogMode()">
-  <span class="dev-mode-dot"></span>
-  Blog page
-</button>
+</div>
 
 <script>
   function motionMs(name) {
@@ -1719,18 +1977,23 @@
     staggerFlyoutItems(container, baseDelay);
   }
 
-  function animateItems(section, baseDelay) {
+  function resetSectionAnimations(section) {
     const containers = [...section.querySelectorAll('.flyout-list, .flyout-loc-col')];
     const featured   = section.querySelector('.flyout-featured, .flyout-loc-featured');
 
-    // Batch-reset all animations so they can restart cleanly
     containers.forEach(c =>
       c.querySelectorAll('.flyout-item').forEach(item => { item.style.animation = 'none'; })
     );
     if (featured) featured.style.animation = 'none';
 
-    // Single reflow commits all resets before new animations are applied
     void panel.offsetWidth;
+  }
+
+  function animateItems(section, baseDelay) {
+    resetSectionAnimations(section);
+
+    const containers = [...section.querySelectorAll('.flyout-list, .flyout-loc-col')];
+    const featured   = section.querySelector('.flyout-featured, .flyout-loc-featured');
 
     // Stagger per-container so multi-column sections (e.g. location) animate in parallel
     containers.forEach(container => staggerFlyoutItems(container, baseDelay));
@@ -1742,6 +2005,24 @@
       const easing = itemEnterEasing();
       featured.style.animation =
         `flyout-item-enter ${duration}ms ${easing} ${baseDelay + offset}ms both`;
+    }
+  }
+
+  function dissolveItems(section) {
+    resetSectionAnimations(section);
+
+    const duration = motionMs('--motion-item-switch');
+    const containers = [...section.querySelectorAll('.flyout-list, .flyout-loc-col')];
+    const featured   = section.querySelector('.flyout-featured, .flyout-loc-featured');
+
+    containers.forEach(container => {
+      container.querySelectorAll('.flyout-item').forEach(item => {
+        item.style.animation = `flyout-item-dissolve ${duration}ms ease both`;
+      });
+    });
+
+    if (featured) {
+      featured.style.animation = `flyout-item-dissolve ${duration}ms ease both`;
     }
   }
 
@@ -1843,17 +2124,24 @@
     panel.classList.add('show');
     updateBridge();
 
-    // Stagger items in after the clip-path reveal on first open
-    const openDelay = wasVisible ? 0 : motionMs('--motion-item-open-delay');
-    animateItems(section, openDelay);
+    // First open: staggered move-up. Switching flyouts: subtle dissolve only.
+    const openDelay = motionMs('--motion-item-open-delay');
+    if (wasVisible) {
+      dissolveItems(section);
+    } else {
+      animateItems(section, openDelay);
+    }
 
     // Ignore hover while items animate in (movement can fire spurious mouseenter)
     const itemCount = section.querySelectorAll('.flyout-item').length;
     const enterDuration = motionMs('--motion-item-enter');
     const stagger = motionMs('--motion-item-stagger');
-    const unlockMs = itemCount
-      ? openDelay + (itemCount - 1) * stagger + enterDuration
-      : 0;
+    const switchDuration = motionMs('--motion-item-switch');
+    const unlockMs = wasVisible
+      ? switchDuration
+      : itemCount
+        ? openDelay + (itemCount - 1) * stagger + enterDuration
+        : 0;
     lockFlyoutHighlightUntil(unlockMs);
   }
 
@@ -2069,10 +2357,70 @@
     el.style.background = duotoneColors[Math.floor(Math.random() * duotoneColors.length)];
   });
 
+  // ── Dev tools panel ─────────────────────────────────────────────
+  function toggleDevtools() {
+    document.getElementById('devtools-panel').classList.toggle('open');
+  }
+
+  function syncDevtools() {
+    const b = document.body;
+    document.getElementById('dt-blog').classList.toggle('on', b.classList.contains('blog-mode'));
+    document.getElementById('dt-mobile').classList.toggle('on', b.classList.contains('mobile-mode'));
+    document.getElementById('dt-header').classList.toggle('on', !b.classList.contains('header-hidden'));
+  }
+
+  function updateURL() {
+    const b = document.body;
+    const p = new URLSearchParams();
+    p.set('blog',   b.classList.contains('blog-mode')     ? '1' : '0');
+    p.set('mobile', b.classList.contains('mobile-mode')   ? '1' : '0');
+    p.set('header', b.classList.contains('header-hidden') ? '0' : '1');
+    history.replaceState(null, '', '?' + p.toString());
+  }
+
+  function copyShareLink() {
+    const url = location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('dt-copy-btn');
+      const label = document.getElementById('dt-copy-label');
+      btn.classList.add('copied');
+      label.textContent = 'Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        label.textContent = 'Copy link';
+      }, 1800);
+    });
+  }
+
+  // ── Mobile mode toggle ───────────────────────────────────────────
+  function toggleMobileMode() {
+    const isEntering = !document.body.classList.contains('mobile-mode');
+    document.body.classList.toggle('mobile-mode');
+    if (isEntering) {
+      if (document.body.classList.contains('blog-mode')) initScrollCardObserver();
+    } else {
+      if (!mobileBreakpoint.matches) destroyScrollCardObserver();
+    }
+    syncDevtools();
+    updateURL();
+  }
+
+  function getMobileViewport() {
+    return document.getElementById('mobile-viewport');
+  }
+
+  function scrollPageTop() {
+    const viewport = getMobileViewport();
+    if (document.body.classList.contains('mobile-mode') && viewport) {
+      viewport.scrollTo({ top: 0, behavior: 'instant' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }
+
   // ── Blog mode toggle ─────────────────────────────────────────────
   function toggleBlogMode() {
     const isEntering = !document.body.classList.contains('blog-mode');
-    // Close any open flyout first
     if (panel.classList.contains('show')) {
       panel.classList.remove('show');
       setFlyoutSlideEnabled(false);
@@ -2083,11 +2431,20 @@
     }
     document.body.classList.toggle('blog-mode');
     if (isEntering) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-      if (mobileBreakpoint.matches) initScrollCardObserver();
+      scrollPageTop();
+      if (mobileBreakpoint.matches || document.body.classList.contains('mobile-mode')) initScrollCardObserver();
     } else {
       destroyScrollCardObserver();
     }
+    syncDevtools();
+    updateURL();
+  }
+
+  // ── Header toggle ────────────────────────────────────────────────
+  function toggleHeaderMode() {
+    document.body.classList.toggle('header-hidden');
+    syncDevtools();
+    updateURL();
   }
 
   // ── Mobile scroll-active blog cards ─────────────────────────────
@@ -2116,10 +2473,11 @@
     const cards = document.querySelectorAll('#blog-page .blog-card');
     cards.forEach(card => scrollCardRatios.set(card, 0));
     const thresholds = Array.from({ length: 21 }, (_, i) => i * 0.05);
+    const root = document.body.classList.contains('mobile-mode') ? getMobileViewport() : null;
     scrollCardObserver = new IntersectionObserver(entries => {
       entries.forEach(e => scrollCardRatios.set(e.target, e.intersectionRatio));
       updateActiveScrollCard();
-    }, { threshold: thresholds });
+    }, { root, threshold: thresholds });
     cards.forEach(card => scrollCardObserver.observe(card));
   }
 
@@ -2136,14 +2494,39 @@
     else destroyScrollCardObserver();
   });
 
+  // ── URL params (shareable links) ────────────────────────────────
+  function readURLParams() {
+    const p = new URLSearchParams(location.search);
+    if (p.has('blog') && p.get('blog') === '0') {
+      document.body.classList.remove('blog-mode');
+      destroyScrollCardObserver();
+    }
+    if (p.get('mobile') === '1') {
+      document.body.classList.add('mobile-mode');
+      if (document.body.classList.contains('blog-mode')) initScrollCardObserver();
+    }
+    if (p.get('header') === '0') {
+      document.body.classList.add('header-hidden');
+    }
+  }
+
   // Close on outside click
   document.addEventListener('click', e => {
+    // Close flyout
     const triggers = config.map(c => document.getElementById(c.triggerId)).filter(Boolean);
     if (!triggers.some(t => t.contains(e.target)) && !panel.contains(e.target) && !bridge.contains(e.target)) {
       clearTimeout(closeTimer);
       startFlyoutClose();
     }
+    // Close devtools panel
+    const devtools = document.getElementById('devtools');
+    if (devtools && !devtools.contains(e.target)) {
+      document.getElementById('devtools-panel').classList.remove('open');
+    }
   });
+
+  readURLParams();
+  syncDevtools();
 </script>
 </body>
 </html>
