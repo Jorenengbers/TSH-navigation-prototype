@@ -182,6 +182,54 @@
   }
   .nav-book-btn:hover { background: #ffc300; color: #1a1510; }
 
+  /* Hamburger button — hidden on desktop */
+  .nav-hamburger-btn {
+    display: none;
+    width: 34px; height: 34px;
+    align-items: center; justify-content: center;
+    overflow: hidden;
+    background: #f3f2f0;
+    border: none; border-radius: 9999px;
+    cursor: pointer; flex-shrink: 0;
+    padding: 12px;
+  }
+  .nav-hamburger-icon {
+    width: 16px; height: 16px;
+    display: block; flex-shrink: 0; object-fit: contain;
+  }
+
+  /* ── Mobile nav breakpoint ──────────────────────────────────────── */
+  @media (max-width: 767px) {
+    .nav-container {
+      padding: 16px 12px;
+      align-items: center;
+    }
+    .nav-logo {
+      width: 50px; height: 50px;
+      margin-right: -5px;
+    }
+    .nav-pill {
+      padding: 8px 8px 8px 20px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.32);
+    }
+    .nav-items {
+      gap: 24px;
+      height: auto;
+    }
+    .nav-location-text {
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 18px;
+    }
+    .nav-item,
+    .nav-buttons {
+      display: none;
+    }
+    .nav-hamburger-btn {
+      display: flex;
+    }
+  }
+
   /* ── Flyout base ────────────────────────────────────────────────── */
   .flyout {
     --flyout-nav-gap: 8px;
@@ -580,8 +628,13 @@
     border-radius: 4px; pointer-events: none;
     transition: inset 400ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .blog-card:hover .blog-card-image-bg {
-    inset: 12.25px -12px -12.5px 12px;
+  @media (hover: hover) and (min-width: 768px) {
+    .blog-card:hover .blog-card-image-bg { inset: 12.25px -12px -12.5px 12px; }
+    .blog-card:hover .blog-card-photo-wrap img { transform: scale(1.04); }
+    .blog-card:hover .blog-card-arrow-area { opacity: 1; }
+    .blog-card:hover .arrow-squircle { transform: rotate(0deg); }
+    .blog-card:hover .arrow-icon-exit  { transform: translateX(22px) scale(0.3); opacity: 0; }
+    .blog-card:hover .arrow-icon-enter { transform: translateX(0)    scale(1);   opacity: 1; }
   }
   .blog-card-photo-wrap {
     width: 100%; aspect-ratio: 4 / 3;
@@ -593,7 +646,6 @@
     width: 100%; height: 100%; object-fit: cover; display: block;
     transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .blog-card:hover .blog-card-photo-wrap img { transform: scale(1.04); }
   .blog-card-arrow-area {
     position: relative; z-index: 1;
     width: 100%; height: 90px;
@@ -603,7 +655,6 @@
     transition: opacity 200ms ease;
     flex-shrink: 0;
   }
-  .blog-card:hover .blog-card-arrow-area { opacity: 1; }
   .blog-card-arrow-btn {
     width: 42px; height: 42px;
     position: relative; flex-shrink: 0;
@@ -614,7 +665,6 @@
     transform-origin: center center;
     transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .blog-card:hover .arrow-squircle { transform: rotate(0deg); }
   .arrow-icon-clip {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
@@ -628,9 +678,6 @@
   }
   .arrow-icon-exit  { transform: translateX(0)    scale(1);   opacity: 1; }
   .arrow-icon-enter { transform: translateX(-22px) scale(0.3); opacity: 0; }
-  .blog-card:hover .arrow-icon-exit  { transform: translateX(22px) scale(0.3); opacity: 0; }
-  .blog-card:hover .arrow-icon-enter { transform: translateX(0)    scale(1);   opacity: 1; }
-
   .blog-card-content { display: flex; flex-direction: column; gap: 12px; }
   .blog-card-badge { display: flex; align-items: center; gap: 8px; height: 18px; }
   .blog-card-badge-text {
@@ -684,6 +731,101 @@
   .blog-pagination-num:hover { background: #f3f2f0; }
   .blog-pagination-num.active { background: #ffc300; }
 
+  /* Hidden on desktop, shown on mobile */
+  .blog-pagination-page-text {
+    display: none;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.28px;
+    line-height: 20px;
+    color: #57534e;
+    white-space: nowrap;
+  }
+
+  /* ── Mobile blog layout ────────────────────────────────────────── */
+  @media (max-width: 767px) {
+    .blog-hero {
+      padding: 160px 16px 80px;
+    }
+    .blog-hero-bg img {
+      width: 122.59%;
+      height: 178.86%;
+      left: -11.3%;
+      top: -39.43%;
+    }
+    .blog-hero-title {
+      font-size: 72px;
+      letter-spacing: -0.72px;
+      text-align: center;
+      white-space: normal;
+      width: 100%;
+    }
+    .blog-section {
+      padding: 48px 0;
+    }
+    .blog-container {
+      padding: 0 16px;
+      gap: 40px;
+    }
+    .blog-grid {
+      grid-template-columns: 1fr;
+      column-gap: 0;
+      row-gap: 64px;
+    }
+    .blog-card--r1-large,
+    .blog-card--r1-small,
+    .blog-card--r2-small,
+    .blog-card--r2-large,
+    .blog-card--r3-large,
+    .blog-card--r3-small,
+    .blog-card--r4-small,
+    .blog-card--r4-large {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .blog-card {
+      gap: 32px;
+    }
+    .blog-card-title {
+      font-size: 30px;
+    }
+    .blog-pagination {
+      justify-content: space-between;
+      padding-top: 24px;
+      gap: 0;
+    }
+    .blog-pagination-side {
+      flex: 0 0 auto;
+    }
+    .blog-pagination-numbers {
+      display: none;
+    }
+    .blog-pagination-page-text {
+      display: block;
+    }
+    /* Scroll-driven active state (replaces hover on mobile) */
+    .blog-card--scroll-active .blog-card-image-bg {
+      inset: 8px -8px -8px 8px;
+    }
+    .blog-card--scroll-active .blog-card-photo-wrap img {
+      transform: scale(1.04);
+    }
+    .blog-card--scroll-active .blog-card-arrow-area {
+      opacity: 1;
+    }
+    .blog-card--scroll-active .arrow-squircle {
+      transform: rotate(0deg);
+    }
+    .blog-card--scroll-active .arrow-icon-exit {
+      transform: translateX(22px) scale(0.3);
+      opacity: 0;
+    }
+    .blog-card--scroll-active .arrow-icon-enter {
+      transform: translateX(0) scale(1);
+      opacity: 1;
+    }
+  }
+
   /* ── Dev mode toggle ────────────────────────────────────────────── */
   #dev-mode-btn {
     position: fixed; bottom: 24px; left: 24px; z-index: 500;
@@ -731,7 +873,7 @@
   }
 </style>
 </head>
-<body>
+<body class="blog-mode">
 
 <!-- ── Hero background ───────────────────────────────────────────── -->
 <div class="hero">
@@ -754,6 +896,13 @@
         <span class="nav-location-chevron">
           <img src="https://www.figma.com/api/mcp/asset/e765baac-db79-47c8-9cae-d27c482df6e2" alt="">
         </span>
+      </button>
+
+      <button class="nav-hamburger-btn" aria-label="Menu">
+        <!-- menu-01: 16×16 frame, lines at y=4/8/12, x=2–14 matching Figma icon component whitespace -->
+        <svg class="nav-hamburger-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M2 4h12M2 8h12M2 12h12" stroke="#1A1510" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
       </button>
 
       <span class="nav-item" id="trigger-stay">Stay</span>
@@ -1371,6 +1520,7 @@
           <button class="blog-pagination-num">4</button>
           <button class="blog-pagination-num">5</button>
         </div>
+        <span class="blog-pagination-page-text">Page 1 of 5</span>
         <div class="blog-pagination-side blog-pagination-side--right">
           <button class="blog-pagination-btn" aria-label="Next page">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -1934,8 +2084,57 @@
     document.body.classList.toggle('blog-mode');
     if (isEntering) {
       window.scrollTo({ top: 0, behavior: 'instant' });
+      if (mobileBreakpoint.matches) initScrollCardObserver();
+    } else {
+      destroyScrollCardObserver();
     }
   }
+
+  // ── Mobile scroll-active blog cards ─────────────────────────────
+  const mobileBreakpoint = window.matchMedia('(max-width: 767px)');
+  let scrollCardObserver = null;
+  let activeScrollCard = null;
+  const scrollCardRatios = new Map();
+
+  function setActiveScrollCard(card) {
+    if (activeScrollCard === card) return;
+    if (activeScrollCard) activeScrollCard.classList.remove('blog-card--scroll-active');
+    activeScrollCard = card;
+    if (activeScrollCard) activeScrollCard.classList.add('blog-card--scroll-active');
+  }
+
+  function updateActiveScrollCard() {
+    let best = null, bestRatio = 0;
+    scrollCardRatios.forEach((ratio, card) => {
+      if (ratio > bestRatio) { bestRatio = ratio; best = card; }
+    });
+    setActiveScrollCard(best);
+  }
+
+  function initScrollCardObserver() {
+    if (scrollCardObserver) return;
+    const cards = document.querySelectorAll('#blog-page .blog-card');
+    cards.forEach(card => scrollCardRatios.set(card, 0));
+    const thresholds = Array.from({ length: 21 }, (_, i) => i * 0.05);
+    scrollCardObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => scrollCardRatios.set(e.target, e.intersectionRatio));
+      updateActiveScrollCard();
+    }, { threshold: thresholds });
+    cards.forEach(card => scrollCardObserver.observe(card));
+  }
+
+  function destroyScrollCardObserver() {
+    if (scrollCardObserver) { scrollCardObserver.disconnect(); scrollCardObserver = null; }
+    scrollCardRatios.clear();
+    setActiveScrollCard(null);
+  }
+
+  if (mobileBreakpoint.matches) initScrollCardObserver();
+
+  mobileBreakpoint.addEventListener('change', e => {
+    if (e.matches && document.body.classList.contains('blog-mode')) initScrollCardObserver();
+    else destroyScrollCardObserver();
+  });
 
   // Close on outside click
   document.addEventListener('click', e => {
