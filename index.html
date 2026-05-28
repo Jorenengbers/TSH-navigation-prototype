@@ -22,17 +22,38 @@
     --motion-hover: 250ms;
     --motion-highlight-move: 350ms;
     --motion-highlight-opacity: 210ms;
-    --motion-item-enter: 600ms;
-    --motion-item-stagger: 110ms;
-    --motion-item-open-delay: 200ms;
-    --motion-featured-enter-offset: 50ms;
+    --motion-item-enter: 480ms;
+    --motion-item-stagger: 85ms;
+    --motion-item-open-delay: 150ms;
+    --motion-featured-enter-offset: 40ms;
     --motion-item-ease: cubic-bezier(0.33, 0, 0, 1);
     --motion-item-enter-distance: 3.125rem;
-    --motion-item-switch: 180ms;
+    --motion-item-switch: 100ms;
+    --motion-flyout-switch: 300ms;
+    --motion-flyout-switch-ease: cubic-bezier(0.33, 0, 0.2, 1);
     --motion-flyout-duration: var(--motion-item-enter);
     --motion-flyout-ease: var(--motion-item-ease);
     --motion-flyout-hover-grace: 300ms;
+    --motion-flyout-loc-resize: 240ms;
+    --motion-flyout-loc-resize-ease: cubic-bezier(0.16, 1, 0.3, 1);
     --motion-image-crossfade: 1000ms;
+    --nav-elevation-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 2px 12px rgba(0,0,0,0.08);
+    --flyout-nav-gap: 8px;
+    --flyout-viewport-margin: 24px;
+    --flyout-viewport-gutter: 48px;
+    --flyout-shell-padding: 12px;
+    --flyout-shell-padding-x: 24px;
+    --flyout-content-gap: 12px;
+    --flyout-clip-radius: 12px;
+    --flyout-narrow-width: 240px;
+    --flyout-featured-rows: 5;
+    --flyout-list-gap: 0px;
+    --flyout-wide-row-height: 62px;
+    --flyout-compact-row-height: 44px;
+    --flyout-featured-size: 310px;
+    --flyout-loc-col-width: 149px;
+    --flyout-highlight-default: #f3f2f0;
+    --flyout-highlight-location: #1a1510;
     --mobile-screen-width: 393px;
     --mobile-screen-height: 852px;
     --mobile-screen-radius: 54px;
@@ -86,12 +107,17 @@
     flex-shrink: 0; cursor: pointer;
     position: relative;
   }
-  .nav-logo img { width: 103%; height: 103%; margin: -1.5%; object-fit: contain; }
+  .nav-logo svg { width: 103%; height: 103%; margin: -1.5%; display: block; overflow: visible; }
+  .nav-logo-shape {
+    transform-box: fill-box;
+    transform-origin: center;
+    will-change: transform;
+  }
 
   /* White pill */
   .nav-pill {
     background: #fff;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 2px 12px rgba(0,0,0,0.08);
+    box-shadow: var(--nav-elevation-shadow);
     border-radius: 32px;
     display: flex;
     align-items: center;
@@ -120,10 +146,10 @@
   .nav-location::before {
     content: '';
     position: absolute;
-    top: calc(-1 * var(--nav-hit-y));
-    bottom: calc(-1 * var(--nav-hit-y));
-    left: calc(-1 * var(--nav-hit-x));
-    right: calc(-1 * var(--nav-hit-x));
+    top: calc(0px - var(--nav-hit-y));
+    bottom: calc(0px - var(--nav-hit-y));
+    left: calc(0px - var(--nav-hit-x));
+    right: calc(0px - var(--nav-hit-x));
   }
   .nav-location-text {
     font-size: 14px; font-weight: 400;
@@ -133,9 +159,14 @@
   .nav-location-chevron {
     width: 16px; height: 16px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
   }
-  .nav-location-chevron img { width: 10px; height: 6px; display: block; }
+  .nav-location-chevron img,
+  .nav-location-chevron svg {
+    width: 10px;
+    height: 6px;
+    display: block;
+    flex-shrink: 0;
+  }
 
   /* Regular nav items */
   .nav-item {
@@ -152,10 +183,10 @@
   .nav-item::before {
     content: '';
     position: absolute;
-    top: calc(-1 * var(--nav-hit-y));
-    bottom: calc(-1 * var(--nav-hit-y));
-    left: calc(-1 * var(--nav-hit-x));
-    right: calc(-1 * var(--nav-hit-x));
+    top: calc(0px - var(--nav-hit-y));
+    bottom: calc(0px - var(--nav-hit-y));
+    left: calc(0px - var(--nav-hit-x));
+    right: calc(0px - var(--nav-hit-x));
   }
   .nav-items:hover .nav-item:not(:hover):not(.active) { color: #7f7c78; }
   .nav-item.active { color: #1a1510; }
@@ -236,85 +267,115 @@
 
   /* ── Flyout base ────────────────────────────────────────────────── */
   .flyout {
-    --flyout-nav-gap: 8px;
-    --flyout-viewport-margin: 24px;
     position: fixed;
     left: auto;
     right: auto;
     z-index: 200;
     background: #fff;
     border-radius: 24px;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.1), 0 12px 40px rgba(0,0,0,0.14);
-    padding: 12px;
+    box-shadow: var(--nav-elevation-shadow);
+    padding: var(--flyout-shell-padding);
     display: flex;
-    max-width: calc(100vw - 48px);
-    /* hidden — clipped shut, ready to open downward */
+    max-width: calc(100vw - var(--flyout-viewport-gutter));
+    overflow: visible;
     visibility: hidden;
     opacity: 0;
-    clip-path: inset(0 0 100% 0 round 24px);
     transition:
       opacity   var(--motion-flyout-duration) var(--motion-flyout-ease),
-      clip-path var(--motion-flyout-duration) var(--motion-flyout-ease),
       visibility 0s linear var(--motion-flyout-duration);
     pointer-events: none;
   }
+
+  /* clip-path on inner layer so outer box-shadow stays visible */
+  .flyout-clip {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--flyout-content-gap);
+    width: 100%;
+    min-width: 0;
+    clip-path: inset(0 0 100% 0 round var(--flyout-clip-radius));
+    transition:
+      clip-path var(--motion-flyout-duration) var(--motion-flyout-ease),
+      opacity var(--motion-flyout-switch) var(--motion-flyout-switch-ease);
+  }
+
+  .flyout-clip.flyout-switch-fade-out {
+    opacity: 0;
+  }
+
   .flyout.show:not(.flyout-exiting) {
     visibility: visible;
     opacity: 1;
-    clip-path: inset(0 0 0 0 round 24px);
     transition:
       opacity   var(--motion-flyout-duration) var(--motion-flyout-ease),
-      clip-path var(--motion-flyout-duration) var(--motion-flyout-ease),
       visibility 0s linear 0s;
     pointer-events: auto;
   }
-  @keyframes flyout-exit {
-    from {
-      opacity: 1;
-      clip-path: inset(0 0 0 0 round 24px);
-    }
-    to {
-      opacity: 0;
-      clip-path: inset(0 0 100% 0 round 24px);
-    }
+  .flyout.show:not(.flyout-exiting) .flyout-clip {
+    clip-path: inset(0 0 0 0 round var(--flyout-clip-radius));
+  }
+
+  @keyframes flyout-exit-opacity {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  @keyframes flyout-exit-clip {
+    from { clip-path: inset(0 0 0 0 round var(--flyout-clip-radius)); }
+    to { clip-path: inset(0 0 100% 0 round var(--flyout-clip-radius)); }
   }
   .flyout.flyout-exiting {
     visibility: visible;
     pointer-events: none;
-    animation: flyout-exit var(--motion-flyout-duration) var(--motion-flyout-ease) forwards;
+    animation: flyout-exit-opacity var(--motion-flyout-duration) var(--motion-flyout-ease) forwards;
     transition: none;
   }
+  .flyout.flyout-exiting .flyout-clip {
+    animation: flyout-exit-clip var(--motion-flyout-duration) var(--motion-flyout-ease) forwards;
+    transition: none;
+  }
+
   /* Slide horizontally when switching between nav items while open */
   .flyout.show.flyout-slide:not(.flyout-exiting) {
     transition:
-      left var(--motion-flyout-duration) var(--motion-flyout-ease),
-      opacity var(--motion-flyout-duration) var(--motion-flyout-ease),
-      clip-path var(--motion-flyout-duration) var(--motion-flyout-ease);
+      left var(--motion-flyout-switch) var(--motion-flyout-switch-ease),
+      width var(--motion-flyout-switch) var(--motion-flyout-switch-ease),
+      opacity var(--motion-flyout-duration) var(--motion-flyout-ease);
+  }
+  .flyout.show.flyout-slide:not(.flyout-exiting) .flyout-clip {
+    transition:
+      clip-path var(--motion-flyout-duration) var(--motion-flyout-ease),
+      opacity var(--motion-flyout-switch) var(--motion-flyout-switch-ease);
   }
 
   /* Sizes */
   .flyout-wide {
     width: min(
-      calc(24px + 12px + var(--flyout-featured-size) * 2),
-      calc(100vw - 48px)
+      calc(var(--flyout-shell-padding-x) + var(--flyout-content-gap) + var(--flyout-featured-size) + var(--flyout-featured-size)),
+      calc(100vw - var(--flyout-viewport-gutter))
     );
-    gap: 12px;
+    gap: var(--flyout-content-gap);
     align-items: flex-start;
   }
   .flyout-xlwide {
-    width: max-content;
-    gap: 12px;
+    width: min(
+      calc(var(--flyout-shell-padding-x) + var(--flyout-content-gap) + var(--flyout-featured-size) + var(--flyout-featured-size)),
+      calc(100vw - var(--flyout-viewport-gutter))
+    );
+    gap: var(--flyout-content-gap);
     align-items: flex-start;
   }
   .flyout-narrow {
-    width: min(320px, calc(100vw - 48px));
+    width: min(var(--flyout-narrow-width), calc(100vw - var(--flyout-viewport-gutter)));
+  }
+  .flyout-narrow .flyout-clip {
     flex-direction: column;
   }
 
   /* Help & Profile — no scroll, hug content */
   .flyout-narrow .flyout-list {
-    --flyout-item-row-height: 44px; /* 12+12 padding + 20 line */
+    --flyout-item-row-height: var(--flyout-compact-row-height); /* 12+12 padding + 20 line */
     flex: 0 0 auto;
+    width: 100%;
     max-height: none;
     min-height: auto;
     overflow: visible;
@@ -322,13 +383,7 @@
 
   /* Featured card — fixed square (height of 5 two-line rows); lists show all items */
   .flyout {
-    --flyout-list-gap: 0px;
-    --flyout-featured-rows: 5;
-    --flyout-item-row-height: 62px; /* 12+12 padding + 20 title + 18 desc */
-    --flyout-featured-size: calc(
-      var(--flyout-featured-rows) * var(--flyout-item-row-height) +
-      (var(--flyout-featured-rows) - 1) * var(--flyout-list-gap)
-    );
+    --flyout-item-row-height: var(--flyout-wide-row-height); /* 12+12 padding + 20 title + 18 desc */
   }
 
   .flyout-wide .flyout-list {
@@ -347,7 +402,41 @@
   }
 
   .flyout-loc-col {
-    --flyout-item-row-height: 44px; /* 12+12 padding + 20 line */
+    --flyout-item-row-height: var(--flyout-compact-row-height); /* 12+12 padding + 20 line */
+  }
+
+  /* Location section — real box so inner height can animate (not display:contents) */
+  #flyout-location.active {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .flyout-loc-inner {
+    display: flex;
+    gap: var(--flyout-content-gap);
+    align-items: flex-start;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* Wide flyouts — featured stays fixed (5 rows); list can grow taller */
+  .flyout-wide .flyout-clip,
+  .flyout-xlwide .flyout-clip {
+    min-height: var(--flyout-featured-size);
+  }
+
+  /* Shared flyout panel — smooth height when list exceeds featured minimum */
+  .flyout-clip.flyout-clip-resizing {
+    transition: height var(--motion-flyout-loc-resize) var(--motion-flyout-loc-resize-ease);
+  }
+
+  /* Nav switch resize — grow/shrink the shell first, reveal list/featured after */
+  .flyout-clip.flyout-clip-resizing.flyout-clip-hide-content .flyout-item,
+  .flyout-clip.flyout-clip-resizing.flyout-clip-hide-content .flyout-featured,
+  .flyout-clip.flyout-clip-resizing.flyout-clip-hide-content .flyout-loc-featured {
+    opacity: 0;
+    animation: none !important;
   }
 
   /* Sections inside the single flyout panel */
@@ -375,7 +464,7 @@
 
   /* Sliding highlight pill — one per list, moved by JS.
      z-index: 0 keeps it behind items; visible in the gaps between items
-     as it slides, creating the GrubHub-style connecting trail. */
+     as it slides, creating a continuous hover trail. */
   .flyout-highlight {
     position: absolute;
     left: 0; right: 0;
@@ -406,33 +495,31 @@
   .flyout-item-muted { color: #57534e; }
 
   /* Themed flyouts (Stay, Work) — white text when highlight is behind item */
-  .flyout-themed .flyout-item:hover .flyout-item-title,
-  .flyout-themed .flyout-item:hover .flyout-item-desc,
   .flyout-themed .flyout-item.flyout-item-highlighted .flyout-item-title,
   .flyout-themed .flyout-item.flyout-item-highlighted .flyout-item-desc { color: white; }
 
   /* ── Location flyout columns ──────────────────────────────────── */
-  .flyout-loc-country .flyout-item:hover:not(.selected) .flyout-item-title,
   .flyout-loc-country .flyout-item.flyout-item-highlighted:not(.selected) .flyout-item-title { color: white; }
   .flyout-loc-country .flyout-item.selected { background: #f3f2f0; }
   .flyout-loc-country .flyout-item.selected .flyout-item-title { color: #1a1510; }
 
-  .flyout-loc-city .flyout-item:hover:not(.selected) .flyout-item-title,
   .flyout-loc-city .flyout-item.flyout-item-highlighted:not(.selected) .flyout-item-title { color: white; }
   .flyout-loc-city .flyout-item.selected { background: #f3f2f0; }
   .flyout-loc-city .flyout-item.selected .flyout-item-title { color: #1a1510; }
 
   /* Items with icons */
   .flyout-item-icon {
-    display: flex; gap: 12px; align-items: flex-start;
+    display: flex; gap: 12px; align-items: center;
   }
-  .flyout-item-icon img {
+  .flyout-item-icon img,
+  .flyout-item-icon svg {
     display: block;
-    width: 20px;
-    height: 20px;
-    min-width: 20px;
-    min-height: 20px;
-    flex: 0 0 20px;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    flex: 0 0 16px;
+    margin-top: 2px;
     object-fit: contain;
     object-position: center;
   }
@@ -506,6 +593,68 @@
     background: #e8eb80;
   }
 
+  .flyout-featured-polaroids {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .flyout-polaroid {
+    position: absolute;
+    background: #fff;
+    padding: 3px 3px 31px;
+    border-radius: 6px;
+    box-shadow: 0 3px 49px rgba(0, 0, 0, 0.25);
+    transform-origin: center center;
+  }
+
+  .flyout-polaroid-photo {
+    position: relative;
+    width: 120px;
+    height: 114px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: #0b9d5c;
+  }
+
+  .flyout-polaroid-photo img {
+    position: absolute;
+    display: block;
+    width: 170%;
+    max-width: none;
+    height: auto;
+    left: -21%;
+    top: -81%;
+  }
+
+  .flyout-polaroid--1 {
+    left: -16px;
+    top: -41px;
+    transform: rotate(-54deg);
+  }
+
+  .flyout-polaroid--2 {
+    left: 83px;
+    top: -161px;
+    transform: rotate(-144deg);
+  }
+
+  .flyout-polaroid--3 {
+    left: 149px;
+    top: -13px;
+    transform: rotate(36deg);
+  }
+
+  .flyout-featured-yellow .flyout-featured-arrow-btn {
+    z-index: 2;
+  }
+
+  .flyout-featured-yellow .flyout-featured-content {
+    z-index: 1;
+  }
+
   /* All locations button */
   .flyout-btn {
     display: inline-flex; align-items: center;
@@ -520,11 +669,18 @@
   }
   .flyout-btn:hover { background: #ffc300; color: #1a1510; }
 
-  /* Location flyout columns */
+  /* Location flyout columns — paired width matches one wide-flyout list column */
   .flyout-loc-col {
-    width: 240px; flex-shrink: 0;
+    width: var(--flyout-loc-col-width);
+    min-width: 0;
+    flex-shrink: 0;
     display: flex; flex-direction: column; gap: 0;
     position: relative;
+  }
+  .flyout-loc-col .flyout-item-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .flyout-loc-featured-images {
     position: absolute; inset: 0;
@@ -1067,7 +1223,9 @@
     right: auto;
   }
   #flyout-bridge.flyout-slide {
-    transition: left var(--motion-flyout-duration) var(--motion-flyout-ease);
+    transition:
+      left var(--motion-flyout-switch) var(--motion-flyout-switch-ease),
+      width var(--motion-flyout-switch) var(--motion-flyout-switch-ease);
   }
 </style>
 </head>
@@ -1084,7 +1242,25 @@
 <!-- ── Navigation bar ────────────────────────────────────────────── -->
 <nav class="nav-container" id="nav-container">
   <div class="nav-logo">
-    <img src="logo.svg" alt="The Social Hub">
+    <svg preserveAspectRatio="xMidYMid meet" width="100%" height="100%" overflow="visible" viewBox="0 0 68.0706 68.0706" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Social Hub">
+      <g class="nav-logo-shape">
+        <path d="M38.1406 2.13541L41.2674 5.26691L41.6446 5.64408L42.1603 5.50671L46.4362 4.36238L50.5374 5.46248L53.5396 8.46475L54.684 12.7406L54.8213 13.2563L55.337 13.3937L59.6129 14.538L62.614 17.5391L63.7141 21.6403L62.5697 25.9161L62.4324 26.4307L62.8084 26.8079L65.9352 29.9393L67.0353 34.0406L65.9364 38.1418L62.8049 41.2686L62.4277 41.6458L62.5651 42.1615L63.7094 46.4373L62.6093 50.5385L59.6082 53.5396L55.3324 54.684L54.8167 54.8213L54.6793 55.337L53.535 59.6129L50.5339 62.614L46.4327 63.7141L42.1568 62.5697L41.6423 62.4324L41.2651 62.8084L38.1336 65.9352L34.0324 67.0353L29.9312 65.9364L26.8044 62.8049L26.4272 62.4277L25.9115 62.5651L21.6356 63.7094L17.5344 62.6093L14.5333 59.6082L13.389 55.3324L13.2516 54.8167L12.7359 54.6793L8.46009 53.535L5.45782 50.5327L4.35771 46.4315L5.50206 42.1557L5.63942 41.6411L5.26341 41.2639L2.13541 38.1324L1.03531 34.0312L2.13424 29.93L5.26574 26.8032L5.64291 26.426L5.50554 25.9103L4.36121 21.6345L5.46132 17.5333L8.46242 14.5322L12.7382 13.3878L13.254 13.2505L13.3913 12.7348L14.5357 8.45893L17.5368 5.45782L21.638 4.35772L25.9138 5.50206L26.4284 5.63942L26.8055 5.26341L29.937 2.13541L34.0382 1.03531L38.1394 2.13425L38.1406 2.13541Z" fill="white"/>
+      </g>
+      <g>
+        <path d="M23.154 16.9186H19.9806V15.2318H28.1877V16.9186H25.0283V24.603H23.154V16.9186Z" fill="#1A1510"/>
+        <path d="M29.8244 15.2318H31.6986V19.0338H36.156V15.2318H38.0303V24.603H36.156V20.7206H31.6986V24.603H29.8244V15.2318Z" fill="#1A1510"/>
+        <path d="M40.09 15.2318H46.7302V16.9186H41.9642V19.0338H45.9409V20.6939H41.9642V22.9162H46.864V24.603H40.09V15.2318Z" fill="#1A1510"/>
+        <path d="M10.3945 37.8345C9.66689 37.3304 9.24548 36.6319 9.12906 35.739L10.8962 35.2571C11.0394 35.8729 11.3071 36.3281 11.6994 36.6226C12.0918 36.9171 12.6319 37.0638 13.3199 37.0638C13.945 37.0638 14.4328 36.952 14.7855 36.7285C15.1383 36.505 15.3141 36.2152 15.3141 35.8589C15.3141 35.618 15.2605 35.4259 15.1534 35.2827C15.0463 35.1395 14.8566 35.0196 14.5841 34.9218C14.3117 34.824 13.9218 34.7344 13.413 34.6541L12.5027 34.5074C11.3688 34.3293 10.5528 34.0126 10.0534 33.5563C9.55397 33.1011 9.30368 32.4853 9.30368 31.7088C9.30368 31.1559 9.45502 30.6716 9.75885 30.256C10.0627 29.8416 10.4957 29.5191 11.058 29.2921C11.6203 29.0639 12.2757 28.951 13.0254 28.951C13.7751 28.951 14.427 29.0651 15.0067 29.2921C15.5865 29.5191 16.0486 29.8393 16.392 30.249C16.7354 30.66 16.9473 31.1372 17.0276 31.6821L15.2605 32.15C15.1173 31.5878 14.8566 31.1687 14.477 30.8916C14.0975 30.6146 13.5912 30.476 12.9579 30.476C12.3956 30.476 11.9579 30.5785 11.6459 30.7845C11.3339 30.9894 11.1768 31.2711 11.1768 31.6285C11.1768 31.8602 11.2303 32.0476 11.3374 32.1908C11.4445 32.334 11.6273 32.4469 11.8857 32.5319C12.1441 32.6169 12.519 32.6995 13.0103 32.7798L13.8799 32.9137C15.0486 33.0837 15.8926 33.3956 16.4107 33.8508C16.9287 34.306 17.1871 34.9346 17.1871 35.7379C17.1871 36.6307 16.8414 37.3292 16.1499 37.8333C15.4584 38.3374 14.4968 38.59 13.2652 38.59C12.0336 38.59 11.1209 38.3374 10.3933 37.8333L10.3945 37.8345Z" fill="#1A1510"/>
+        <path d="M20.7453 37.9881C20.0317 37.5865 19.4776 37.0219 19.0853 36.2943C18.693 35.5667 18.4963 34.7262 18.4963 33.7705C18.4963 32.8148 18.693 31.9743 19.0853 31.2467C19.4776 30.5191 20.0317 29.9545 20.7453 29.5529C21.4589 29.1513 22.2855 28.951 23.2214 28.951C24.1574 28.951 24.9711 29.1513 25.6847 29.5529C26.3983 29.9545 26.9524 30.5191 27.3448 31.2467C27.7371 31.9743 27.9338 32.8159 27.9338 33.7705C27.9338 34.7251 27.7371 35.5667 27.3448 36.2943C26.9524 37.0219 26.3983 37.5865 25.6847 37.9881C24.9711 38.3897 24.1446 38.59 23.2086 38.59C22.2727 38.59 21.4589 38.3886 20.7453 37.9881ZM25.3029 36.1744C25.7976 35.6261 26.0456 34.8252 26.0456 33.7717C26.0456 32.7181 25.7976 31.9172 25.3029 31.3689C24.8081 30.8206 24.1097 30.5459 23.2075 30.5459C22.3053 30.5459 21.6208 30.8206 21.126 31.3689C20.6301 31.9172 20.3833 32.7193 20.3833 33.7717C20.3833 34.824 20.6313 35.6261 21.126 36.1744C21.6208 36.7227 22.3192 36.9974 23.2214 36.9974C24.1236 36.9974 24.8081 36.7227 25.3029 36.1744Z" fill="#1A1510"/>
+        <path d="M31.5046 37.988C30.8131 37.5864 30.2823 37.0241 29.9109 36.3012C29.5407 35.5783 29.3556 34.7343 29.3556 33.7704C29.3556 32.8065 29.55 31.9881 29.9377 31.2605C30.3253 30.5329 30.8725 29.966 31.5779 29.5609C32.2834 29.1546 33.0948 28.9521 34.0144 28.9521C34.827 28.9521 35.5406 29.0976 36.1564 29.3874C36.7723 29.6773 37.267 30.0685 37.643 30.5586C38.0179 31.0498 38.2495 31.5935 38.3392 32.1918L36.5185 32.7005C36.2775 31.264 35.4335 30.5457 33.9877 30.5457C33.1041 30.5457 32.4254 30.8228 31.9528 31.3758C31.4802 31.9287 31.2427 32.7285 31.2427 33.7715C31.2427 34.8146 31.4743 35.6365 31.9388 36.1813C32.4033 36.7261 33.0762 36.9973 33.9609 36.9973C34.7106 36.9973 35.2868 36.8122 35.6885 36.442C36.0901 36.0718 36.3671 35.5072 36.5185 34.7482L38.3392 35.257C38.2228 35.8821 37.9783 36.4467 37.6023 36.9508C37.2274 37.4548 36.728 37.8541 36.1029 38.1486C35.4778 38.4432 34.7548 38.5898 33.9341 38.5898C33.0063 38.5898 32.1961 38.3885 31.5046 37.988Z" fill="#1A1510"/>
+        <path d="M39.9884 29.0848H41.8627V38.456H39.9884V29.0848Z" fill="#1A1510"/>
+        <path d="M46.6723 29.0848H48.9482L52.4429 38.456H50.4615L49.7118 36.3804H45.8958L45.1461 38.456H43.1916L46.6723 29.0848ZM49.096 34.6947L47.8108 31.1465L46.5116 34.6947H49.096Z" fill="#1A1510"/>
+        <path d="M53.7541 29.0848H55.6283V36.7692H59.8459V38.456H53.7541V29.0848Z" fill="#1A1510"/>
+        <path d="M19.5353 42.9379H21.4096V46.7399H25.867V42.9379H27.7412V52.3091H25.867V48.4267H21.4096V52.3091H19.5353V42.9379Z" fill="#1A1510"/>
+        <path d="M30.8164 51.386C30.0982 50.6805 29.7384 49.6677 29.7384 48.3464V42.9379H31.6127V48.3068C31.6127 49.1275 31.8024 49.741 32.1819 50.1473C32.5614 50.5536 33.1121 50.7562 33.835 50.7562C34.5579 50.7562 35.1085 50.5548 35.488 50.1543C35.8676 49.7527 36.0573 49.1415 36.0573 48.3208V42.9391H37.9315V48.3476C37.9315 49.6689 37.5718 50.6817 36.8536 51.3871C36.1353 52.0926 35.1283 52.4441 33.835 52.4441C32.5416 52.4441 31.5347 52.0914 30.8164 51.3871V51.386Z" fill="#1A1510"/>
+        <path d="M39.9416 42.9379H44.1045C45.1755 42.9379 45.9962 43.1568 46.5678 43.5933C47.1393 44.031 47.4246 44.655 47.4246 45.4675C47.4246 45.9402 47.3244 46.3418 47.123 46.6724C46.9228 47.003 46.6213 47.2743 46.2197 47.4885C46.7552 47.6491 47.1568 47.8994 47.4246 48.2382C47.6923 48.5769 47.8262 49.0239 47.8262 49.5769C47.8262 50.4337 47.5142 51.1031 46.8891 51.585C46.2639 52.067 45.4071 52.3079 44.3187 52.3079H39.9416V42.9367V42.9379ZM45.1429 46.5327C45.406 46.3313 45.5375 46.0356 45.5375 45.6422C45.5375 45.2487 45.4036 44.9588 45.1359 44.7714C44.8681 44.584 44.4525 44.4897 43.8903 44.4897H41.8146V46.8319H43.9834C44.4921 46.8319 44.8786 46.7318 45.1417 46.5304L45.1429 46.5327ZM45.4968 50.4686C45.782 50.2765 45.9252 49.975 45.9252 49.5653C45.9252 49.1555 45.7866 48.847 45.5107 48.6677C45.2337 48.4896 44.7785 48.4 44.1452 48.4H41.8158V50.7562H44.1184C44.7517 50.7562 45.2116 50.6607 45.4968 50.4686Z" fill="#1A1510"/>
+      </g>
+    </svg>
   </div>
 
   <div class="nav-pill">
@@ -1094,7 +1270,7 @@
       <button class="nav-location" id="trigger-location">
         <span class="nav-location-text">Amsterdam City</span>
         <span class="nav-location-chevron">
-          <img src="https://www.figma.com/api/mcp/asset/e765baac-db79-47c8-9cae-d27c482df6e2" alt="">
+          <img src="assets/icons/chevron-down.svg" width="10" height="6" alt="" aria-hidden="true">
         </span>
       </button>
 
@@ -1468,9 +1644,11 @@
 
 <!-- Single shared flyout panel — content swapped instantly between nav items -->
 <div class="flyout" id="flyout-panel">
+<div class="flyout-clip">
 
 <!-- Location section -->
 <div class="flyout-section flyout-xlwide" id="flyout-location">
+  <div class="flyout-loc-inner" id="flyout-loc-inner">
   <!-- Countries: selected=gray, hover=dark (#1a1510) + white text -->
   <div class="flyout-loc-col flyout-loc-country" id="flyout-loc-country">
     <div class="flyout-item" data-country="austria"><div class="flyout-item-inner"><span class="flyout-item-title">Austria</span></div></div>
@@ -1497,7 +1675,8 @@
       <button class="flyout-btn">All locations</button>
     </div>
   </div>
-</div>
+  </div><!-- .flyout-loc-inner -->
+</div><!-- #flyout-location -->
 
 <!-- Stay section — duotone accent: blue #3a71de -->
 <div class="flyout-section flyout-wide flyout-themed" id="flyout-stay" style="--accent:#3a71de;">
@@ -1529,6 +1708,23 @@
   </div>
   <!-- Yellow promo card -->
   <div class="flyout-featured flyout-featured-yellow">
+    <div class="flyout-featured-polaroids" aria-hidden="true">
+      <div class="flyout-polaroid flyout-polaroid--1">
+        <div class="flyout-polaroid-photo">
+          <img src="assets/stay-polaroid-photo.jpg" alt="">
+        </div>
+      </div>
+      <div class="flyout-polaroid flyout-polaroid--2">
+        <div class="flyout-polaroid-photo">
+          <img src="assets/stay-polaroid-photo.jpg" alt="">
+        </div>
+      </div>
+      <div class="flyout-polaroid flyout-polaroid--3">
+        <div class="flyout-polaroid-photo">
+          <img src="assets/stay-polaroid-photo.jpg" alt="">
+        </div>
+      </div>
+    </div>
     <div class="flyout-featured-arrow-btn" aria-hidden="true">
       <img src="assets/interactive-arrow-light.svg" alt="">
     </div>
@@ -1686,15 +1882,15 @@
 <div class="flyout-section flyout-narrow" id="flyout-help">
   <div class="flyout-list">
     <div class="flyout-item flyout-item-icon">
-      <img src="https://www.figma.com/api/mcp/asset/7591b212-a8cb-4a19-a3ac-713384f36041" alt="">
+      <img src="assets/icons/calendar-check-01.svg" width="16" height="16" alt="" aria-hidden="true">
       <div class="flyout-item-inner"><span class="flyout-item-title">Manage my booking</span></div>
     </div>
     <div class="flyout-item flyout-item-icon">
-      <img src="https://www.figma.com/api/mcp/asset/5b25a248-f616-4ef2-943e-18e52e096c0c" alt="">
+      <img src="assets/icons/help-circle.svg" width="16" height="16" alt="" aria-hidden="true">
       <div class="flyout-item-inner"><span class="flyout-item-title">Help Center</span></div>
     </div>
     <div class="flyout-item flyout-item-icon">
-      <img src="https://www.figma.com/api/mcp/asset/ccacd917-81a2-4889-ac2d-ecb306112388" alt="">
+      <img src="assets/icons/headphones-01.svg" width="16" height="16" alt="" aria-hidden="true">
       <div class="flyout-item-inner"><span class="flyout-item-title">Contact</span></div>
     </div>
   </div>
@@ -1704,29 +1900,30 @@
 <div class="flyout-section flyout-narrow" id="flyout-profile">
   <div class="flyout-list">
     <div class="flyout-item flyout-item-icon">
-      <img src="https://www.figma.com/api/mcp/asset/41bc8f06-b603-421b-9b8b-0fdea1f195ee" alt="">
+      <img src="assets/icons/calendar-check-01.svg" width="16" height="16" alt="" aria-hidden="true">
       <div class="flyout-item-inner"><span class="flyout-item-title">My Stays</span></div>
     </div>
     <div class="flyout-item flyout-item-icon">
-      <img src="https://www.figma.com/api/mcp/asset/7a55558d-583e-4ed7-8810-4efa800242d5" alt="">
+      <img src="assets/icons/help-circle.svg" width="16" height="16" alt="" aria-hidden="true">
       <div class="flyout-item-inner"><span class="flyout-item-title">My Membership</span></div>
     </div>
     <div class="flyout-item flyout-item-icon">
-      <img src="https://www.figma.com/api/mcp/asset/4ed57452-a6f0-4ef6-aa66-bd528550c461" alt="">
+      <img src="assets/icons/file-check-02.svg" width="16" height="16" alt="" aria-hidden="true">
       <div class="flyout-item-inner"><span class="flyout-item-title">Billing</span></div>
     </div>
     <div class="flyout-item flyout-item-icon">
-      <img src="https://www.figma.com/api/mcp/asset/0a8f1d9b-a086-4d39-864c-35a554756428" alt="">
+      <img src="assets/icons/settings-02.svg" width="16" height="16" alt="" aria-hidden="true">
       <div class="flyout-item-inner"><span class="flyout-item-title">Account details</span></div>
     </div>
     <div class="flyout-divider"></div>
     <div class="flyout-item flyout-item-icon">
-      <img src="https://www.figma.com/api/mcp/asset/9176d2e5-4820-43f7-a6a0-848c3ced28f4" alt="">
-      <div class="flyout-item-inner"><span class="flyout-item-title flyout-item-muted">Logout</span></div>
+      <img src="assets/icons/log-in-01.svg" width="16" height="16" alt="" aria-hidden="true">
+      <div class="flyout-item-inner"><span class="flyout-item-title">Logout</span></div>
     </div>
   </div>
 </div>
 
+</div><!-- .flyout-clip -->
 </div><!-- end #flyout-panel -->
 
 <!-- Transparent bridge fills the gap between nav pill and flyout so hover is continuous -->
@@ -1805,18 +2002,41 @@
 </div>
 
 <script>
-  function motionMs(name) {
-    return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name)) || 0;
+  function cssVar(node, name, seen = new Set()) {
+    const raw = getComputedStyle(node).getPropertyValue(name).trim();
+    const varMatch = raw.match(/^var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\)$/);
+
+    if (!varMatch) return raw;
+
+    const [, refName, fallback = ''] = varMatch;
+    if (seen.has(refName)) return fallback.trim();
+
+    seen.add(refName);
+    return cssVar(node, refName, seen) || fallback.trim();
   }
 
-  const config = [
+  function cssNumber(node, name, fallback = 0) {
+    const value = parseFloat(cssVar(node, name));
+    return Number.isFinite(value) ? value : fallback;
+  }
+
+  function cssMs(name, fallback = 0) {
+    const value = cssNumber(document.documentElement, name, fallback);
+    return value > 0 ? value : fallback;
+  }
+
+  function motionMs(name, fallback = 0) {
+    return cssMs(name, fallback);
+  }
+
+  const flyoutConfigs = [
     { triggerId: 'trigger-location', sectionId: 'flyout-location' },
-    { triggerId: 'trigger-stay',     sectionId: 'flyout-stay'     },
-    { triggerId: 'trigger-work',     sectionId: 'flyout-work'     },
-    { triggerId: 'trigger-meetings',   sectionId: 'flyout-meetings'   },
+    { triggerId: 'trigger-stay', sectionId: 'flyout-stay' },
+    { triggerId: 'trigger-work', sectionId: 'flyout-work' },
+    { triggerId: 'trigger-meetings', sectionId: 'flyout-meetings' },
     { triggerId: 'trigger-membership', sectionId: 'flyout-membership' },
-    { triggerId: 'trigger-help',     sectionId: 'flyout-help'     },
-    { triggerId: 'trigger-profile',  sectionId: 'flyout-profile'  },
+    { triggerId: 'trigger-help', sectionId: 'flyout-help' },
+    { triggerId: 'trigger-profile', sectionId: 'flyout-profile' },
   ];
 
   const panel  = document.getElementById('flyout-panel');
@@ -1843,6 +2063,108 @@
   let closeTimer    = null;
   let exitTimer     = null;
   let onLocationFlyoutOpen = null;
+  let flyoutSwitchToken = 0;
+  let flyoutSwitchTimers = [];
+  const flyoutClip = () => panel.querySelector('.flyout-clip');
+
+  function clearFlyoutSwitchTimers() {
+    flyoutSwitchTimers.forEach(clearTimeout);
+    flyoutSwitchTimers = [];
+  }
+
+  function flyoutSwitchMs() {
+    return motionMs('--motion-flyout-switch', 480);
+  }
+
+  function cancelFlyoutContentSwitch({ preserveOpacity = false } = {}) {
+    flyoutSwitchToken++;
+    clearFlyoutSwitchTimers();
+    flyoutLayoutAnimActive = false;
+    finishFlyoutClipResize();
+    const clip = flyoutClip();
+    if (clip) {
+      const currentOpacity = getComputedStyle(clip).opacity;
+      clip.classList.remove('flyout-switch-fade-out', 'flyout-clip-hide-content');
+      clip.style.opacity = preserveOpacity ? currentOpacity : '';
+    }
+  }
+
+  function waitClipOpacity(clip, ms) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clip.removeEventListener('transitionend', onEnd);
+        resolve();
+      };
+      const onEnd = (e) => {
+        if (e.target !== clip || e.propertyName !== 'opacity') return;
+        finish();
+      };
+      clip.addEventListener('transitionend', onEnd);
+      flyoutSwitchTimers.push(setTimeout(finish, ms + 40));
+    });
+  }
+
+  function crossfadeFlyoutContent(applyUpdate) {
+    const clip = flyoutClip();
+    if (!clip) {
+      applyUpdate();
+      return;
+    }
+
+    const token = ++flyoutSwitchToken;
+    clearFlyoutSwitchTimers();
+    const currentOpacity = getComputedStyle(clip).opacity;
+    clip.classList.remove('flyout-switch-fade-out');
+    clip.style.opacity = currentOpacity;
+
+    const duration = flyoutSwitchMs();
+    const outMs = Math.round(duration * 0.42);
+    const inMs = duration - outMs;
+
+    clip.style.transition = [
+      `clip-path var(--motion-flyout-duration) var(--motion-flyout-ease)`,
+      `opacity ${outMs}ms var(--motion-flyout-switch-ease)`,
+    ].join(', ');
+
+    void clip.offsetWidth;
+    clip.style.opacity = '0';
+
+    waitClipOpacity(clip, outMs).then(() => {
+      if (token !== flyoutSwitchToken) return;
+
+      return animateFlyoutClipLayout(applyUpdate, {
+        reveal: true,
+        dissolveAfterResize: true,
+      });
+    }).then((didResize) => {
+      if (token !== flyoutSwitchToken) return;
+
+      if (!didResize) {
+        clip.style.transition = [
+          `clip-path var(--motion-flyout-duration) var(--motion-flyout-ease)`,
+          `opacity ${inMs}ms var(--motion-flyout-switch-ease)`,
+        ].join(', ');
+        clip.style.opacity = '0';
+        void clip.offsetWidth;
+        clip.style.opacity = '1';
+        return waitClipOpacity(clip, inMs);
+      }
+    }).then(() => {
+      if (token !== flyoutSwitchToken) return;
+      const c = flyoutClip();
+      if (c) {
+        c.classList.remove('flyout-switch-fade-out');
+        c.style.transition = '';
+        c.style.opacity = '';
+      }
+      if (activeTrigger && activeSection) positionPanel(activeTrigger, activeSection);
+      else ensureFlyoutInViewport();
+      syncHighlightFromPointer(activeSection);
+    });
+  }
 
   function getNavPillBottom() {
     const pill = document.querySelector('.nav-pill');
@@ -1851,11 +2173,48 @@
   }
 
   function getFlyoutNavGap() {
-    return parseFloat(getComputedStyle(panel).getPropertyValue('--flyout-nav-gap')) || 8;
+    return cssNumber(panel, '--flyout-nav-gap', 8);
   }
 
   function getFlyoutViewportMargin() {
-    return parseFloat(getComputedStyle(panel).getPropertyValue('--flyout-viewport-margin')) || 24;
+    return cssNumber(panel, '--flyout-viewport-margin', 24);
+  }
+
+  function getFlyoutViewportWidth() {
+    return window.visualViewport?.width ?? document.documentElement.clientWidth;
+  }
+
+  function getFlyoutViewportBounds(panelWidth) {
+    const margin = getFlyoutViewportMargin();
+    const viewportW = getFlyoutViewportWidth();
+    return {
+      margin,
+      minLeft: margin,
+      maxRight: viewportW - margin,
+      maxLeft: viewportW - margin - panelWidth,
+    };
+  }
+
+  function ensureFlyoutInViewport() {
+    if (!panel.classList.contains('show')) return;
+
+    const margin = getFlyoutViewportMargin();
+    const maxRight = getFlyoutViewportWidth() - margin;
+    const minLeft = margin;
+    const rect = panel.getBoundingClientRect();
+    let left = parseFloat(panel.style.left);
+
+    if (!Number.isFinite(left)) return;
+
+    if (rect.right > maxRight + 0.5) {
+      left -= rect.right - maxRight;
+    }
+    if (rect.left < minLeft - 0.5) {
+      left += minLeft - rect.left;
+    }
+
+    panel.style.left = `${left}px`;
+    panel.style.right = 'auto';
   }
 
   function setFlyoutSlideEnabled(enabled) {
@@ -1878,11 +2237,9 @@
   }
 
   function getFlyoutLabelInset(section, trigger) {
-    const panelPad = parseFloat(getComputedStyle(panel).paddingLeft) || 12;
+    const panelPad = cssNumber(panel, 'padding-left', 12);
     const item = section?.querySelector('.flyout-item');
-    const itemPad = item
-      ? parseFloat(getComputedStyle(item).paddingLeft) || 16
-      : 16;
+    const itemPad = item ? cssNumber(item, 'padding-left', 16) : 16;
 
     // Profile — align nav icon with flyout item icon
     if (trigger?.classList.contains('nav-icon-btn') && item?.classList.contains('flyout-item-icon')) {
@@ -1894,64 +2251,192 @@
     }
 
     const icon = item.querySelector('img, svg');
-    const gap = parseFloat(getComputedStyle(item).gap) || 12;
+    const gap = cssNumber(item, 'gap', 12);
     const iconW = icon ? icon.getBoundingClientRect().width : 20;
     return panelPad + itemPad + iconW + gap;
   }
 
-  function getFeaturedSize() {
-    const featured = parseFloat(getComputedStyle(panel).getPropertyValue('--flyout-featured-size'));
-    return featured || 342;
+  function readFlyoutTokenPx(token, fallback) {
+    return cssNumber(panel, token, fallback);
+  }
+
+  function getFeaturedSize(_section) {
+    const explicitSize = readFlyoutTokenPx('--flyout-featured-size', NaN);
+    if (Number.isFinite(explicitSize)) return explicitSize;
+
+    const rows = readFlyoutTokenPx('--flyout-featured-rows', 5);
+    const rowH = readFlyoutTokenPx('--flyout-wide-row-height', 62);
+    const gap = readFlyoutTokenPx('--flyout-list-gap', 0);
+    return rows * rowH + Math.max(0, rows - 1) * gap;
   }
 
   function getPanelWidth(section) {
-    const viewportCap = window.innerWidth - 48;
-    const featuredW = getFeaturedSize();
-    if (section?.classList.contains('flyout-xlwide')) {
-      const panelPad = 24;
-      const gap = 12;
-      const colW = 240;
-      return Math.min(panelPad + colW + gap + colW + gap + featuredW, viewportCap);
+    const margin = getFlyoutViewportMargin();
+    const viewportCap = getFlyoutViewportWidth() - margin * 2;
+    const panelPad = readFlyoutTokenPx('--flyout-shell-padding-x', 24);
+    const gap = readFlyoutTokenPx('--flyout-content-gap', 12);
+    const featuredW = getFeaturedSize(section);
+    const narrowW = readFlyoutTokenPx('--flyout-narrow-width', 320);
+
+    if (section?.classList.contains('flyout-xlwide') ||
+        section?.classList.contains('flyout-wide')) {
+      return Math.min(panelPad + gap + featuredW * 2, viewportCap);
     }
-    if (section?.classList.contains('flyout-wide')) {
-      return Math.min(24 + 12 + featuredW * 2, viewportCap);
-    }
-    return Math.min(320, viewportCap);
+    return Math.min(narrowW, viewportCap);
   }
 
-  function positionPanel(trigger, section) {
-    const margin = getFlyoutViewportMargin();
-    panel.style.top = getNavPillBottom() + getFlyoutNavGap() + 'px';
+  function syncFlyoutPanelWidth(section = activeSection) {
+    if (!section || !panel.classList.contains('show') || flyoutLayoutAnimActive) return;
+    panel.style.width = `${getPanelWidth(section)}px`;
+    if (activeTrigger) positionPanel(activeTrigger, section);
+    else ensureFlyoutInViewport();
+  }
 
-    const panelWidth = getPanelWidth(section);
-    const maxLeft = window.innerWidth - margin - panelWidth;
-    const minLeft = margin;
+  function stopPanelWidthViewportTrack() {
+    if (panelWidthRaf) {
+      cancelAnimationFrame(panelWidthRaf);
+      panelWidthRaf = null;
+    }
+  }
 
+  function startPanelWidthViewportTrack() {
+    stopPanelWidthViewportTrack();
+    const tick = () => {
+      if (!panel.classList.contains('show')) {
+        stopPanelWidthViewportTrack();
+        return;
+      }
+      ensureFlyoutInViewport();
+      panelWidthRaf = requestAnimationFrame(tick);
+    };
+    panelWidthRaf = requestAnimationFrame(tick);
+  }
+
+  function getPanelLeft(trigger, section, panelWidth) {
+    const { minLeft, maxRight, maxLeft } = getFlyoutViewportBounds(panelWidth);
     let left = maxLeft;
+
     if (trigger) {
-      // Align flyout list labels with the hovered nav label text
-      left = getTriggerTextLeft(trigger) - getFlyoutLabelInset(section, trigger);
-      left = Math.max(minLeft, Math.min(left, maxLeft));
+      const preferred = getTriggerTextLeft(trigger) - getFlyoutLabelInset(section, trigger);
+      const fitsAligned = preferred >= minLeft && preferred + panelWidth <= maxRight;
+
+      if (fitsAligned) {
+        left = preferred;
+      } else if (preferred + panelWidth > maxRight) {
+        const pillRect = document.querySelector('.nav-pill')?.getBoundingClientRect();
+        if (pillRect) {
+          left = pillRect.right - panelWidth;
+        } else {
+          left = preferred;
+        }
+        left = Math.max(minLeft, Math.min(left, maxLeft));
+      } else {
+        left = Math.max(minLeft, Math.min(preferred, maxLeft));
+      }
     }
 
-    panel.style.left  = left + 'px';
+    return left;
+  }
+
+  function positionPanel(trigger, section, { skipWidth = false, widthOverride = null } = {}) {
+    panel.style.top = getNavPillBottom() + getFlyoutNavGap() + 'px';
+
+    const panelWidth = widthOverride ?? getPanelWidth(section);
+    const left = getPanelLeft(trigger, section, panelWidth);
+
+    if (!skipWidth) {
+      panel.style.width = `${panelWidth}px`;
+    }
+
     panel.style.right = 'auto';
+    panel.style.left = `${left}px`;
+    ensureFlyoutInViewport();
+  }
+
+  function animateFlyoutPanelLayout(targetWidth, targetLeft, duration, easing) {
+    const startRect = panel.getBoundingClientRect();
+    const startW = startRect.width;
+    const startLeft = startRect.left;
+    const needsWidth = Math.abs(startW - targetWidth) > 1;
+    const needsLeft = Math.abs(startLeft - targetLeft) > 1;
+
+    if (!needsWidth && !needsLeft) return Promise.resolve(false);
+
+    clearTimeout(panelWidthResizeTimer);
+    stopPanelWidthViewportTrack();
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (e) => {
+        if (settled) return;
+        if (e && (e.target !== panel || !['left', 'width'].includes(e.propertyName))) return;
+        settled = true;
+        panel.removeEventListener('transitionend', finish);
+        clearTimeout(panelWidthResizeTimer);
+        stopPanelWidthViewportTrack();
+        panel.style.transition = '';
+        if (activeTrigger && activeSection) {
+          positionPanel(activeTrigger, activeSection);
+        } else {
+          panel.style.width = `${targetWidth}px`;
+          panel.style.left = `${targetLeft}px`;
+          ensureFlyoutInViewport();
+        }
+        resolve(true);
+      };
+
+      panel.style.right = 'auto';
+      panel.style.left = `${startLeft}px`;
+      panel.style.width = `${startW}px`;
+      void panel.offsetWidth;
+
+      panel.style.transition = [
+        `left ${duration}ms ${easing}`,
+        `width ${duration}ms ${easing}`,
+      ].join(', ');
+      panel.addEventListener('transitionend', finish);
+      panelWidthResizeTimer = setTimeout(() => finish(), duration + 80);
+
+      requestAnimationFrame(() => {
+        panel.style.width = `${targetWidth}px`;
+        panel.style.left = `${targetLeft}px`;
+        updateBridge();
+      });
+    });
   }
 
   function updateBridge() {
     if (!panel.classList.contains('show')) { bridge.style.display = 'none'; return; }
     const pill = document.querySelector('.nav-pill');
     if (!pill) { bridge.style.display = 'none'; return; }
-    const pillBottom = pill.getBoundingClientRect().bottom;
+    const pillRect = pill.getBoundingClientRect();
+    const pillBottom = pillRect.bottom;
     const panelRect  = panel.getBoundingClientRect();
     const gap = panelRect.top - pillBottom;
     if (gap <= 0) { bridge.style.display = 'none'; return; }
     bridge.style.display = 'block';
     bridge.style.top    = pillBottom + 'px';
     bridge.style.height = gap + 'px';
-    bridge.style.left   = (parseFloat(panel.style.left) || panelRect.left) + 'px';
-    bridge.style.width  = panelRect.width + 'px';
+    /* Full pill width so moving between nav and flyout gets a short grace window */
+    bridge.style.left   = pillRect.left + 'px';
+    bridge.style.width  = pillRect.width + 'px';
     bridge.style.right  = 'auto';
+  }
+
+  function isWithinFlyoutHoverZone(node) {
+    if (!node || !(node instanceof Node)) return false;
+    if (panel.contains(node)) return true;
+    const nav = document.getElementById('nav-container');
+    if (nav?.contains(node)) return true;
+    return flyoutConfigs.some(({ triggerId }) => {
+      const trigger = document.getElementById(triggerId);
+      return trigger?.contains(node);
+    });
+  }
+
+  function onFlyoutHoverLeave(e) {
+    if (isWithinFlyoutHoverZone(e.relatedTarget)) return;
+    scheduleFlyoutClose();
   }
 
   function getSizeClass(section) {
@@ -1961,9 +2446,7 @@
   }
 
   function itemEnterEasing() {
-    return getComputedStyle(document.documentElement)
-      .getPropertyValue('--motion-item-ease')
-      .trim() || 'cubic-bezier(0.33, 0, 0, 1)';
+    return cssVar(document.documentElement, '--motion-item-ease') || 'cubic-bezier(0.33, 0, 0, 1)';
   }
 
   function staggerFlyoutItems(container, baseDelay = 0) {
@@ -1982,15 +2465,26 @@
     staggerFlyoutItems(container, baseDelay);
   }
 
-  function resetSectionAnimations(section) {
+  function clearFlyoutItemAnimations(section) {
+    if (!section) return;
     const containers = [...section.querySelectorAll('.flyout-list, .flyout-loc-col')];
     const featured   = section.querySelector('.flyout-featured, .flyout-loc-featured');
 
-    containers.forEach(c =>
-      c.querySelectorAll('.flyout-item').forEach(item => { item.style.animation = 'none'; })
+    containers.forEach((c) =>
+      c.querySelectorAll('.flyout-item').forEach((item) => { item.style.animation = ''; })
     );
-    if (featured) featured.style.animation = 'none';
+    if (featured) featured.style.animation = '';
 
+    void panel.offsetWidth;
+  }
+
+  function resetSectionAnimations(section) {
+    clearFlyoutItemAnimations(section);
+    section?.querySelectorAll('.flyout-item').forEach((item) => {
+      item.style.animation = 'none';
+    });
+    const featured = section?.querySelector('.flyout-featured, .flyout-loc-featured');
+    if (featured) featured.style.animation = 'none';
     void panel.offsetWidth;
   }
 
@@ -2051,10 +2545,18 @@
   }
 
   function finishFlyoutClose() {
-    panel.classList.remove('flyout-exiting');
+    panel.classList.remove('flyout-exiting', 'flyout-items-entered');
+    panel.style.removeProperty('width');
+    const clip = flyoutClip();
+    if (clip) {
+      clip.classList.remove('flyout-switch-fade-out', 'flyout-clip-hide-content');
+      clip.style.opacity = '';
+      clip.style.transition = '';
+    }
     setFlyoutSlideEnabled(false);
     bridge.style.display = 'none';
     resetAllFlyoutHighlights();
+    panel.querySelectorAll('.flyout-section').forEach(clearFlyoutItemAnimations);
     if (activeSection) { activeSection.classList.remove('active'); activeSection = null; }
     if (activeTrigger) { activeTrigger.classList.remove('active'); activeTrigger = null; }
   }
@@ -2062,6 +2564,8 @@
   function startFlyoutClose() {
     if (!panel.classList.contains('show') && !panel.classList.contains('flyout-exiting')) return;
 
+    cancelFlyoutContentSwitch({ preserveOpacity: true });
+    finishFlyoutClipResize();
     flyoutHighlightLocked = false;
     clearTimeout(flyoutHighlightUnlockTimer);
     resetAllFlyoutHighlights();
@@ -2083,6 +2587,58 @@
     }
   }
 
+  function closeFlyoutImmediately() {
+    clearTimeout(closeTimer);
+    clearTimeout(exitTimer);
+    cancelFlyoutContentSwitch();
+    finishFlyoutClipResize();
+    flyoutHighlightLocked = false;
+    clearTimeout(flyoutHighlightUnlockTimer);
+    panel.classList.remove('show', 'flyout-exiting');
+    finishFlyoutClose();
+  }
+
+  function applyFlyoutSection(trigger, section, sectionId, wasVisible) {
+    if (activeTrigger) activeTrigger.classList.remove('active');
+    trigger.classList.add('active');
+    activeTrigger = trigger;
+
+    if (activeSection) {
+      clearFlyoutItemAnimations(activeSection);
+      activeSection.classList.remove('active');
+    }
+    section.classList.add('active');
+    activeSection = section;
+    clearFlyoutItemAnimations(section);
+
+    panel.classList.remove('flyout-wide', 'flyout-xlwide', 'flyout-narrow');
+    panel.classList.add(getSizeClass(section));
+    if (sectionId === 'flyout-location') {
+      skipNextLocationLayoutAnim = !wasVisible;
+      syncLocationFlyoutLayout();
+      if (onLocationFlyoutOpen) onLocationFlyoutOpen(wasVisible);
+    }
+
+    void panel.offsetWidth;
+
+    if (wasVisible) {
+      setFlyoutSlideEnabled(true);
+      void panel.offsetWidth;
+    } else {
+      setFlyoutSlideEnabled(false);
+    }
+
+    if (flyoutLayoutAnimActive) {
+      panel.style.top = getNavPillBottom() + getFlyoutNavGap() + 'px';
+      panel.style.right = 'auto';
+    } else {
+      positionPanel(trigger, section);
+    }
+    resetAllFlyoutHighlights();
+    panel.classList.add('show');
+    updateBridge();
+  }
+
   function showSection(triggerId, sectionId) {
     clearTimeout(closeTimer);
     clearTimeout(exitTimer);
@@ -2093,61 +2649,40 @@
 
     const wasVisible = panel.classList.contains('show');
 
-    // Swap active trigger highlight
-    if (activeTrigger) activeTrigger.classList.remove('active');
-    trigger.classList.add('active');
-    activeTrigger = trigger;
-
-    // Swap section content instantly (display:contents — children become panel flex items)
-    if (activeSection) activeSection.classList.remove('active');
-    section.classList.add('active');
-    activeSection = section;
-
-    if (sectionId === 'flyout-location' && onLocationFlyoutOpen) onLocationFlyoutOpen();
-
-    // Update panel size class so width/gap/flex-direction match the new section
-    panel.classList.remove('flyout-wide', 'flyout-xlwide', 'flyout-narrow');
-    panel.classList.add(getSizeClass(section));
-
-    // Reflow so width is committed before clamping position
-    void panel.offsetWidth;
-
-    if (wasVisible) {
-      setFlyoutSlideEnabled(true);
-      void panel.offsetWidth;
-    } else {
-      setFlyoutSlideEnabled(false);
+    if (wasVisible && activeTrigger === trigger && activeSection?.id === sectionId) {
+      updateBridge();
+      return;
     }
 
-    // Position below the hovered nav item, clamped to viewport
-    positionPanel(trigger, section);
+    cancelFlyoutContentSwitch();
 
-    // Clear stale hover pill (DOM swap / reopen can leave the first item "lit")
-    resetAllFlyoutHighlights();
-
-    // Show panel — already visible: no re-animation; hidden: animates in
-    panel.classList.add('show');
-    updateBridge();
-
-    // First open: staggered move-up. Switching flyouts: subtle dissolve only.
     const openDelay = motionMs('--motion-item-open-delay');
-    if (wasVisible) {
-      dissolveItems(section);
-    } else {
-      animateItems(section, openDelay);
-    }
-
-    // Ignore hover while items animate in (movement can fire spurious mouseenter)
-    const itemCount = section.querySelectorAll('.flyout-item').length;
     const enterDuration = motionMs('--motion-item-enter');
     const stagger = motionMs('--motion-item-stagger');
-    const switchDuration = motionMs('--motion-item-switch');
-    const unlockMs = wasVisible
-      ? switchDuration
-      : itemCount
+    const switchDuration = flyoutSwitchMs();
+
+    if (wasVisible) {
+      lockFlyoutHighlightUntil(
+        switchDuration + locResizeMs() + motionMs('--motion-item-switch') + 40
+      );
+      crossfadeFlyoutContent(() => applyFlyoutSection(trigger, section, sectionId, true));
+      return;
+    }
+
+    applyFlyoutSection(trigger, section, sectionId, false);
+
+    if (!panel.classList.contains('flyout-items-entered')) {
+      const itemCount = section.querySelectorAll('.flyout-item').length;
+      const animationMs = itemCount
         ? openDelay + (itemCount - 1) * stagger + enterDuration
         : 0;
-    lockFlyoutHighlightUntil(unlockMs);
+      lockFlyoutHighlightUntil(openDelay);
+      animateItems(section, openDelay);
+      setTimeout(() => {
+        clearFlyoutItemAnimations(section);
+        panel.classList.add('flyout-items-entered');
+      }, animationMs);
+    }
   }
 
   function scheduleFlyoutClose() {
@@ -2155,17 +2690,21 @@
     closeTimer = setTimeout(startFlyoutClose, motionMs('--motion-flyout-hover-grace'));
   }
 
-  config.forEach(({ triggerId, sectionId }) => {
+  const navContainer = document.getElementById('nav-container');
+  navContainer?.addEventListener('mouseenter', () => { clearTimeout(closeTimer); cancelFlyoutClose(); });
+  navContainer?.addEventListener('mouseleave', onFlyoutHoverLeave);
+
+  flyoutConfigs.forEach(({ triggerId, sectionId }) => {
     const trigger = document.getElementById(triggerId);
     if (!trigger) return;
     trigger.addEventListener('mouseenter', () => showSection(triggerId, sectionId));
-    trigger.addEventListener('mouseleave', scheduleFlyoutClose);
+    trigger.addEventListener('mouseleave', onFlyoutHoverLeave);
   });
 
   panel.addEventListener('mouseenter',  () => { clearTimeout(closeTimer); cancelFlyoutClose(); });
-  panel.addEventListener('mouseleave',  scheduleFlyoutClose);
-  bridge.addEventListener('mouseenter', () => { clearTimeout(closeTimer); cancelFlyoutClose(); });
-  bridge.addEventListener('mouseleave', scheduleFlyoutClose);
+  panel.addEventListener('mouseleave',  onFlyoutHoverLeave);
+  bridge.addEventListener('mouseenter', scheduleFlyoutClose);
+  bridge.addEventListener('mouseleave', onFlyoutHoverLeave);
 
   window.addEventListener('resize', () => {
     if (panel.classList.contains('show')) { positionPanel(activeTrigger, activeSection); updateBridge(); }
@@ -2184,6 +2723,204 @@
   const countryColumn = document.getElementById('flyout-loc-country');
   const cityColumn = document.getElementById('flyout-loc-city');
   let selectedCountryId = 'netherlands';
+  let previewCountryId = null;
+  let skipNextLocationLayoutAnim = false;
+  let clipResizeTimer = null;
+  let clipResizeEndHandler = null;
+  let panelWidthResizeTimer = null;
+  let panelWidthRaf = null;
+  let flyoutLayoutAnimActive = false;
+
+  function locResizeEase() {
+    return cssVar(document.documentElement, '--motion-flyout-loc-resize-ease') || 'cubic-bezier(0.16, 1, 0.3, 1)';
+  }
+
+  function locResizeMs() {
+    return motionMs('--motion-flyout-loc-resize', 350);
+  }
+
+  function syncLocationFlyoutLayout() {
+    /* Featured uses fixed --flyout-featured-size; columns use --flyout-loc-col-width */
+    if (isLocationFlyoutActive() && !flyoutLayoutAnimActive) {
+      syncFlyoutPanelWidth(activeSection);
+    }
+  }
+
+  function isLocationFlyoutActive() {
+    return activeSection?.id === 'flyout-location' && panel.classList.contains('show');
+  }
+
+  function finishFlyoutClipResize() {
+    clearTimeout(clipResizeTimer);
+    clipResizeTimer = null;
+    clearTimeout(panelWidthResizeTimer);
+    panelWidthResizeTimer = null;
+    stopPanelWidthViewportTrack();
+    panel.style.transition = '';
+    const clip = flyoutClip();
+    if (clipResizeEndHandler && clip) {
+      clip.removeEventListener('transitionend', clipResizeEndHandler);
+      clipResizeEndHandler = null;
+    }
+    clip?.classList.remove('flyout-clip-resizing', 'flyout-clip-hide-content');
+    if (clip) {
+      clip.style.height = '';
+      clip.style.overflow = '';
+      clip.style.transition = '';
+    }
+    flyoutLayoutAnimActive = false;
+    if (activeTrigger && activeSection) positionPanel(activeTrigger, activeSection);
+    updateBridge();
+  }
+
+  function getFlyoutFeaturedMinHeight() {
+    return getFeaturedSize();
+  }
+
+  function getFlyoutListColumnHeight(listEl) {
+    if (!listEl) return 0;
+    const count = listEl.querySelectorAll('.flyout-item').length;
+    if (!count) return 0;
+    const rowH = cssNumber(listEl, '--flyout-item-row-height', 44);
+    const gap = cssNumber(listEl, 'gap', 0);
+    return count * rowH + Math.max(0, count - 1) * gap;
+  }
+
+  function measureLocationFlyoutHeight() {
+    const countryH = getFlyoutListColumnHeight(countryColumn);
+    const cityH = getFlyoutListColumnHeight(cityColumn);
+    return Math.max(countryH, cityH, getFlyoutFeaturedMinHeight());
+  }
+
+  /* Row-based height — avoids scrollHeight while panel width is still transitioning */
+  function measureFlyoutClipNaturalHeight(_clip, section) {
+    if (!section) return 0;
+
+    if (section.classList.contains('flyout-xlwide')) {
+      return measureLocationFlyoutHeight();
+    }
+
+    if (section.classList.contains('flyout-wide')) {
+      const featuredMin = getFlyoutFeaturedMinHeight();
+      const listH = getFlyoutListColumnHeight(section.querySelector('.flyout-list'));
+      return Math.max(featuredMin, listH);
+    }
+
+    // Narrow: panel width is fixed so scrollHeight is accurate (includes dividers etc.)
+    const list = section.querySelector('.flyout-list');
+    return list ? list.scrollHeight : 0;
+  }
+
+  function animateFlyoutClipLayout(applyUpdate, { reveal = false, dissolveAfterResize = false } = {}) {
+    const clip = flyoutClip();
+    if (!clip || !panel.classList.contains('show')) {
+      applyUpdate();
+      return Promise.resolve(false);
+    }
+
+    finishFlyoutClipResize();
+    flyoutLayoutAnimActive = true;
+
+    const duration = locResizeMs();
+    const easing = locResizeEase();
+    const startHeight = clip.getBoundingClientRect().height;
+    const startPanelW = panel.getBoundingClientRect().width;
+    const startPanelLeft = panel.getBoundingClientRect().left;
+
+    clip.style.height = `${startHeight}px`;
+    clip.style.overflow = 'hidden';
+
+    applyUpdate();
+    void panel.offsetWidth;
+    void clip.offsetHeight;
+
+    const endHeight = measureFlyoutClipNaturalHeight(clip, activeSection);
+    const endPanelW = getPanelWidth(activeSection);
+    const endPanelLeft = getPanelLeft(activeTrigger, activeSection, endPanelW);
+    const needsHeight = Math.abs(endHeight - startHeight) > 1;
+    const needsWidth = Math.abs(endPanelW - startPanelW) > 1;
+    const needsLeft = Math.abs(endPanelLeft - startPanelLeft) > 1;
+
+    if (!needsHeight && !needsWidth && !needsLeft) {
+      if (reveal) clip.style.opacity = '1';
+      finishFlyoutClipResize();
+      return Promise.resolve(false);
+    }
+
+    if (dissolveAfterResize) {
+      clip.classList.add('flyout-clip-hide-content');
+      clearFlyoutItemAnimations(activeSection);
+    }
+
+    const panelLayoutPromise = (needsWidth || needsLeft)
+      ? animateFlyoutPanelLayout(endPanelW, endPanelLeft, duration, easing)
+      : Promise.resolve(false);
+
+    let heightPromise = Promise.resolve(false);
+
+    if (needsHeight) {
+      clip.classList.add('flyout-clip-resizing');
+      clip.style.transition = `height ${duration}ms ${easing}`;
+      if (reveal) {
+        clip.style.opacity = '1';
+      }
+
+      heightPromise = new Promise((resolve) => {
+        let finished = false;
+        const complete = (e) => {
+          if (finished) return;
+          if (e && (e.target !== clip || e.propertyName !== 'height')) return;
+          finished = true;
+          clip.removeEventListener('transitionend', complete);
+          clipResizeEndHandler = null;
+          resolve(true);
+        };
+
+        clipResizeEndHandler = complete;
+        clip.addEventListener('transitionend', complete);
+        clipResizeTimer = setTimeout(() => complete(), duration + 80);
+
+        requestAnimationFrame(() => {
+          clip.style.height = `${endHeight}px`;
+        });
+      });
+    } else if (reveal) {
+      clip.style.opacity = '1';
+    }
+
+    return Promise.all([panelLayoutPromise, heightPromise]).then(() => {
+      const resizeMs = Math.max(
+        (needsWidth || needsLeft) ? duration : 0,
+        needsHeight ? duration : 0
+      );
+
+      if (dissolveAfterResize && activeSection) {
+        const dissolveMs = motionMs('--motion-item-switch');
+        const revealDelay = Math.max(0, duration - resizeMs);
+
+        return new Promise((resolve) => {
+          clipResizeTimer = setTimeout(() => {
+            clip.classList.remove('flyout-clip-hide-content');
+            dissolveItems(activeSection);
+            clipResizeTimer = setTimeout(() => {
+              finishFlyoutClipResize();
+              resolve(true);
+            }, dissolveMs + 8);
+          }, revealDelay);
+        });
+      }
+
+      finishFlyoutClipResize();
+      return true;
+    });
+  }
+
+  function animateLocationFlyoutLayout(applyUpdate) {
+    animateFlyoutClipLayout(() => {
+      applyUpdate();
+      syncLocationFlyoutLayout();
+    });
+  }
 
   const locationImgA = document.getElementById('flyout-location-img-a');
   const locationImgB = document.getElementById('flyout-location-img-b');
@@ -2231,12 +2968,12 @@
     const isLocation = container.classList.contains('flyout-loc-country') ||
                        container.classList.contains('flyout-loc-city');
 
-    let bgColor = '#f3f2f0';
+    let bgColor = cssVar(panel, '--flyout-highlight-default') || '#f3f2f0';
     if (isLocation) {
-      bgColor = '#1a1510';
+      bgColor = cssVar(panel, '--flyout-highlight-location') || '#1a1510';
     } else {
       const themed = container.closest('.flyout-themed');
-      if (themed) bgColor = themed.style.getPropertyValue('--accent') || '#f3f2f0';
+      if (themed) bgColor = themed.style.getPropertyValue('--accent') || bgColor;
     }
 
     const hl = document.createElement('div');
@@ -2247,6 +2984,15 @@
 
     let entered = false;
     let highlightedItem = null;
+    let revealRafOne = null;
+    let revealRafTwo = null;
+
+    function cancelRevealFrame() {
+      cancelAnimationFrame(revealRafOne);
+      cancelAnimationFrame(revealRafTwo);
+      revealRafOne = null;
+      revealRafTwo = null;
+    }
 
     function setHighlightedItem(item) {
       if (highlightedItem) highlightedItem.classList.remove('flyout-item-highlighted');
@@ -2255,6 +3001,7 @@
     }
 
     function reset() {
+      cancelRevealFrame();
       hl.style.opacity = '0';
       hl.style.transition = '';
       setHighlightedItem(null);
@@ -2269,7 +3016,7 @@
         return;
       }
 
-      setHighlightedItem(item);
+      cancelRevealFrame();
 
       const top    = item.offsetTop;
       const height = item.offsetHeight;
@@ -2278,12 +3025,18 @@
         hl.style.transition = 'none';
         hl.style.transform  = `translateY(${top}px)`;
         hl.style.height     = height + 'px';
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          hl.style.transition = '';
-          hl.style.opacity    = '1';
-        }));
+        revealRafOne = requestAnimationFrame(() => {
+          revealRafTwo = requestAnimationFrame(() => {
+            setHighlightedItem(item);
+            hl.style.transition = '';
+            hl.style.opacity    = '1';
+            revealRafOne = null;
+            revealRafTwo = null;
+          });
+        });
         entered = true;
       } else {
+        setHighlightedItem(item);
         hl.style.transform = `translateY(${top}px)`;
         hl.style.height    = height + 'px';
         hl.style.opacity   = '1';
@@ -2299,7 +3052,7 @@
     container.addEventListener('mouseleave', reset);
   }
 
-  function renderCityList(countryId) {
+  function applyCityList(countryId, { skipItemEnter = false } = {}) {
     if (!cityColumn || !locationData[countryId]) return;
 
     const cities = locationData[countryId].cities;
@@ -2318,14 +3071,40 @@
     });
     cityColumn.onmouseleave = resetLocationImage;
 
-    animateContainerItems(cityColumn, 0);
-
-    const cityCount = cities.length;
-    if (cityCount) {
-      lockFlyoutHighlightUntil(
-        (cityCount - 1) * motionMs('--motion-item-stagger') + motionMs('--motion-item-enter')
-      );
+    if (!skipItemEnter) {
+      animateContainerItems(cityColumn, 0);
+      const cityCount = cities.length;
+      if (cityCount) {
+        lockFlyoutHighlightUntil(
+          (cityCount - 1) * motionMs('--motion-item-stagger') + motionMs('--motion-item-enter')
+        );
+      }
     }
+  }
+
+  function renderCityList(countryId, { force = false, skipItemEnter = false } = {}) {
+    if (!cityColumn || !locationData[countryId]) return;
+    if (!force && countryId === previewCountryId && cityColumn.querySelector('.flyout-item')) {
+      /* Flyout open re-requests same list — still consume the one-shot skip flag */
+      if (skipNextLocationLayoutAnim) skipNextLocationLayoutAnim = false;
+      return;
+    }
+    previewCountryId = countryId;
+
+    const skipOnce = skipNextLocationLayoutAnim;
+    if (skipNextLocationLayoutAnim) skipNextLocationLayoutAnim = false;
+    const animate = isLocationFlyoutActive() && !skipOnce;
+    const skipEnter = skipItemEnter || panel.classList.contains('flyout-items-entered');
+
+    if (animate) {
+      animateLocationFlyoutLayout(
+        () => applyCityList(countryId, { skipItemEnter: true })
+      );
+      return;
+    }
+
+    applyCityList(countryId, { skipItemEnter: skipEnter });
+    syncLocationFlyoutLayout();
   }
 
   function selectCountry(countryId) {
@@ -2336,7 +3115,7 @@
       item.classList.toggle('selected', item.dataset.country === countryId);
     });
 
-    renderCityList(countryId);
+    renderCityList(countryId, { force: true });
   }
 
   countryColumn?.querySelectorAll('.flyout-item').forEach(item => {
@@ -2349,7 +3128,11 @@
 
   renderCityList(selectedCountryId);
   initSlidingHighlight(countryColumn);
-  onLocationFlyoutOpen = () => renderCityList(selectedCountryId);
+  onLocationFlyoutOpen = (fromNavSwitch) => {
+    /* City column is covered by animateItems on first open; never re-stagger on nav switch */
+    const skipEnter = !!fromNavSwitch || !panel.classList.contains('flyout-items-entered');
+    renderCityList(selectedCountryId, { skipItemEnter: skipEnter });
+  };
 
   // ── Sliding highlight (non-location lists) ───────────────────────
   document.querySelectorAll('.flyout-list').forEach(container => {
@@ -2370,6 +3153,60 @@
   }
 
   applyBlogDuotoneColors();
+
+  // ── Scroll-reactive logo shape ───────────────────────────────────
+  const navLogoShape = document.querySelector('.nav-logo-shape');
+  let logoRotation = 0;
+  let logoTargetRotation = 0;
+  let logoLastScrollTop = getLogoScrollTop();
+  let logoAnimationFrame = null;
+  let logoScrollFrame = null;
+
+  function getLogoScrollTop() {
+    const viewport = getMobileViewport();
+    if (document.body.classList.contains('mobile-mode') && viewport) return viewport.scrollTop;
+    return window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  }
+
+  function setLogoScrollBaseline() {
+    logoLastScrollTop = getLogoScrollTop();
+  }
+
+  function animateLogoRotation() {
+    if (!navLogoShape) return;
+    logoRotation += (logoTargetRotation - logoRotation) * 0.16;
+    if (Math.abs(logoTargetRotation - logoRotation) < 0.01) {
+      logoRotation = logoTargetRotation;
+      logoAnimationFrame = null;
+    } else {
+      logoAnimationFrame = requestAnimationFrame(animateLogoRotation);
+    }
+    navLogoShape.style.transform = `rotate(${logoRotation}deg)`;
+  }
+
+  function queueLogoRotation() {
+    if (!logoAnimationFrame) logoAnimationFrame = requestAnimationFrame(animateLogoRotation);
+  }
+
+  function updateLogoRotationFromScroll() {
+    logoScrollFrame = null;
+    const nextScrollTop = getLogoScrollTop();
+    const delta = nextScrollTop - logoLastScrollTop;
+    if (!delta) return;
+    logoLastScrollTop = nextScrollTop;
+    logoTargetRotation += delta * 0.42;
+    queueLogoRotation();
+  }
+
+  function onLogoScroll() {
+    if (!logoScrollFrame) logoScrollFrame = requestAnimationFrame(updateLogoRotationFromScroll);
+  }
+
+  if (navLogoShape) {
+    window.addEventListener('scroll', onLogoScroll, { passive: true });
+    const viewport = getMobileViewport();
+    if (viewport) viewport.addEventListener('scroll', onLogoScroll, { passive: true });
+  }
 
   // ── Dev tools panel ─────────────────────────────────────────────
   let devtoolsClickCount = 0;
@@ -2425,6 +3262,7 @@
   function toggleMobileMode() {
     const isEntering = !document.body.classList.contains('mobile-mode');
     document.body.classList.toggle('mobile-mode');
+    setLogoScrollBaseline();
     if (isEntering) {
       if (document.body.classList.contains('blog-mode')) initScrollCardObserver();
     } else {
@@ -2450,13 +3288,8 @@
   // ── Blog mode toggle ─────────────────────────────────────────────
   function toggleBlogMode() {
     const isEntering = !document.body.classList.contains('blog-mode');
-    if (panel.classList.contains('show')) {
-      panel.classList.remove('show');
-      setFlyoutSlideEnabled(false);
-      bridge.style.display = 'none';
-      if (activeSection) { activeSection.classList.remove('active'); activeSection = null; }
-      if (activeTrigger) { activeTrigger.classList.remove('active'); activeTrigger = null; }
-      clearTimeout(closeTimer);
+    if (panel.classList.contains('show') || panel.classList.contains('flyout-exiting')) {
+      closeFlyoutImmediately();
     }
     document.body.classList.toggle('blog-mode');
     if (isEntering) {
@@ -2526,6 +3359,7 @@
     }
     if (p.get('mobile') === '1') {
       document.body.classList.add('mobile-mode');
+      setLogoScrollBaseline();
       if (document.body.classList.contains('blog-mode')) initScrollCardObserver();
     }
     if (p.get('pastel') === '1') {
@@ -2541,7 +3375,7 @@
   // Close on outside click
   document.addEventListener('click', e => {
     // Close flyout
-    const triggers = config.map(c => document.getElementById(c.triggerId)).filter(Boolean);
+    const triggers = flyoutConfigs.map(c => document.getElementById(c.triggerId)).filter(Boolean);
     if (!triggers.some(t => t.contains(e.target)) && !panel.contains(e.target) && !bridge.contains(e.target)) {
       clearTimeout(closeTimer);
       startFlyoutClose();
