@@ -64,6 +64,13 @@
     --mobile-safe-area-top: 12px;
     --mobile-safe-area-bottom: 12px;
     --mobile-menu-shell-padding: 8px;
+    --mobile-menu-featured-height: 196px;
+    --mobile-menu-featured-padding-top: 48px;
+    --mobile-menu-featured-padding-x: 20px;
+    --mobile-menu-featured-padding-bottom: 20px;
+    --mobile-menu-featured-gap: 16px;
+    --mobile-menu-featured-text-gap: 8px;
+    --mobile-menu-header-height: 42px;
     --motion-mobile-menu-open: 380ms;
     --motion-mobile-menu-open-ease: cubic-bezier(0.33, 0, 0, 1);
     --motion-mobile-menu-push: 320ms;
@@ -1239,7 +1246,7 @@
   }
 
   .mobile-menu-header {
-    height: 42px;
+    height: var(--mobile-menu-header-height);
     flex-shrink: 0;
     pointer-events: none;
   }
@@ -1278,21 +1285,25 @@
 
   .mobile-menu-featured {
     flex-shrink: 1;
-    min-height: 120px;
+    min-height: 0;
     margin: calc(-1 * var(--mobile-menu-shell-padding)) calc(-1 * var(--mobile-menu-shell-padding)) 0;
     overflow: hidden;
     position: relative;
+    border-radius: var(--mobile-menu-radius) var(--mobile-menu-radius) 0 0;
   }
   #mobile-menu.has-featured .mobile-menu-header {
     display: none;
   }
   .mobile-menu-featured--card {
-    height: 250px;
-    padding: 64px 20px 28px;
+    height: var(--mobile-menu-featured-height);
+    padding:
+      var(--mobile-menu-featured-padding-top)
+      var(--mobile-menu-featured-padding-x)
+      var(--mobile-menu-featured-padding-bottom);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    gap: 16px;
+    gap: var(--mobile-menu-featured-gap);
   }
   .mobile-menu-featured-arrow {
     width: 32px; height: 32px;
@@ -1302,8 +1313,13 @@
   .mobile-menu-featured-arrow img {
     width: 100%; height: 100%; display: block;
   }
-  .mobile-menu-featured-text-content {
-    position: relative; z-index: 1;
+  .mobile-menu-featured-text-content,
+  .mobile-menu-featured--image .mobile-menu-featured-text {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--mobile-menu-featured-text-gap);
   }
   /* Polaroid group image for card-type featured */
   .mobile-menu-polaroids-img {
@@ -1332,12 +1348,15 @@
   }
   .mobile-menu-featured--image {
     position: relative;
-    height: 250px;
+    height: var(--mobile-menu-featured-height);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    gap: 16px;
-    padding: 0 20px 20px;
+    gap: var(--mobile-menu-featured-gap);
+    padding:
+      0
+      var(--mobile-menu-featured-padding-x)
+      var(--mobile-menu-featured-padding-bottom);
   }
   .mobile-menu-featured--image > img {
     position: absolute; inset: 0;
@@ -1348,7 +1367,6 @@
     background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.88) 100%);
   }
   .mobile-menu-featured--image .mobile-menu-featured-text {
-    position: relative; z-index: 1;
     color: #fff;
   }
   .mobile-menu-featured--image .mobile-menu-featured-title {
@@ -1390,16 +1408,18 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 8px;
   }
   .mobile-menu-item-title {
-    font-size: 18px;
-    line-height: 24px;
-    letter-spacing: 0.36px;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 22px;
+    letter-spacing: 0.32px;
     color: #1a1510;
   }
   .mobile-menu-item-desc {
     font-size: 14px;
+    font-weight: 400;
     line-height: 20px;
     letter-spacing: 0.28px;
     color: #6b6763;
@@ -4078,6 +4098,53 @@
     return typeof screenDef.featured === 'function' ? screenDef.featured() : screenDef.featured;
   }
 
+  function getMobileFeaturedHeight() {
+    return cssNumber(document.documentElement, '--mobile-menu-featured-height', 196);
+  }
+
+  function getMobileMenuShellContentHeight() {
+    const shell = mobileMenuEl?.querySelector('.mobile-menu-shell');
+    if (!shell) return 0;
+    const shellStyle = getComputedStyle(shell);
+    const shellPaddingY =
+      parseFloat(shellStyle.paddingTop) + parseFloat(shellStyle.paddingBottom);
+    const footerH = mobileMenuFooter?.offsetHeight || 0;
+    return Math.max(0, shell.clientHeight - shellPaddingY - footerH);
+  }
+
+  function getMobileListContentHeight(screenEl) {
+    const inner = screenEl?.querySelector('.mobile-menu-screen-inner');
+    if (!inner) return 0;
+
+    const innerStyle = getComputedStyle(inner);
+    const paddingY =
+      parseFloat(innerStyle.paddingTop) + parseFloat(innerStyle.paddingBottom);
+    const gap = parseFloat(innerStyle.rowGap || innerStyle.gap) || 0;
+
+    const heading = inner.querySelector('.mobile-menu-heading');
+    const list = inner.querySelector('.mobile-menu-list');
+    let contentH = paddingY;
+    if (heading) contentH += heading.offsetHeight + gap;
+    if (list) contentH += list.scrollHeight;
+    else contentH += inner.scrollHeight - paddingY;
+
+    return contentH;
+  }
+
+  function mobileListFitsWithFeatured(screenEl) {
+    const listH = getMobileListContentHeight(screenEl);
+    const shellContentH = getMobileMenuShellContentHeight();
+    const featuredH = getMobileFeaturedHeight();
+    return listH + featuredH <= shellContentH + 0.5;
+  }
+
+  function syncMobileFeaturedVisibility(featured, screenEl) {
+    const show = Boolean(featured) && mobileListFitsWithFeatured(screenEl);
+    const isShown = !mobileMenuFeatured.hidden && mobileMenuFeatured.innerHTML.length > 0;
+    if (show === isShown) return;
+    renderFeatured(show ? featured : null);
+  }
+
   function renderFeatured(featured) {
     const mobileMenu = document.getElementById('mobile-menu');
     if (!featured) {
@@ -4215,10 +4282,24 @@
     if (!top) return;
 
     const screenDef = mobileScreens[top.screenId];
-    renderFeatured(resolveScreenFeatured(screenDef));
+    const screenEl = mobileMenuTrack.children[mobileMenuStack.length - 1];
     renderFooter(screenDef.footer || 'back');
-
     mobileMenuTrack.style.transform = `translateX(-${(mobileMenuStack.length - 1) * 100}%)`;
+
+    renderFeatured(null);
+    void mobileMenuEl.offsetWidth;
+    syncMobileFeaturedVisibility(resolveScreenFeatured(screenDef), screenEl);
+  }
+
+  function refreshMobileFeaturedFit() {
+    if (!mobileMenuOpen || mobileMenuClosing) return;
+    const top = mobileMenuStack[mobileMenuStack.length - 1];
+    if (!top) return;
+    const screenDef = mobileScreens[top.screenId];
+    const screenEl = mobileMenuTrack.children[mobileMenuStack.length - 1];
+    renderFeatured(null);
+    void mobileMenuEl.offsetWidth;
+    syncMobileFeaturedVisibility(resolveScreenFeatured(screenDef), screenEl);
   }
 
   function clearMobileMenuScreenAnimations(screenEl) {
@@ -4420,6 +4501,7 @@
         if (token !== mobileMenuOpenToken) return;
         navLocationBtn?.classList.remove('is-fading');
         mobileMenuEl.classList.add('is-content-visible');
+        refreshMobileFeaturedFit();
         animateMobileMenuScreen(mobileMenuTrack.lastElementChild);
       }, openMs * 0.72);
     };
@@ -4523,6 +4605,7 @@
       height: fullHeight,
       radius: cssNumber(document.documentElement, '--mobile-menu-radius', 28),
     });
+    refreshMobileFeaturedFit();
   }
 
   window.addEventListener('resize', handleViewportResize);
