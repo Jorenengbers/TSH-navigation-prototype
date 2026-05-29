@@ -1245,7 +1245,7 @@
   }
 
   .mobile-menu-body {
-    flex: 1;
+    flex: 1 1 0;
     min-height: 0;
     overflow: hidden;
     position: relative;
@@ -1277,7 +1277,8 @@
   }
 
   .mobile-menu-featured {
-    flex-shrink: 0;
+    flex-shrink: 1;
+    min-height: 120px;
     margin: calc(-1 * var(--mobile-menu-shell-padding)) calc(-1 * var(--mobile-menu-shell-padding)) 0;
     overflow: hidden;
     position: relative;
@@ -1286,12 +1287,12 @@
     display: none;
   }
   .mobile-menu-featured--card {
+    height: 250px;
     padding: 64px 20px 28px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     gap: 16px;
-    min-height: 250px;
   }
   .mobile-menu-featured-arrow {
     width: 32px; height: 32px;
@@ -1666,6 +1667,82 @@
   }
   .dt-copy-btn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8); }
   .dt-copy-btn.copied { color: #4ade80; }
+
+  /* ── Frame resize handles ────────────────────────────────────────── */
+  .frame-resize-handle {
+    display: none;
+    position: absolute;
+    top: 60px;
+    bottom: 60px;
+    width: 32px;
+    cursor: ew-resize;
+    pointer-events: auto;
+    z-index: 1;
+    align-items: center;
+    justify-content: center;
+  }
+  body.mobile-mode .frame-resize-handle { display: flex; }
+  .frame-resize-handle::before {
+    content: '';
+    width: 4px;
+    height: 40px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.18);
+    transition: background 200ms;
+    flex-shrink: 0;
+  }
+  .frame-resize-handle:hover::before,
+  .frame-resize-handle.dragging::before { background: rgba(255,255,255,0.55); }
+  .frame-resize-handle--left  { left:  -16px; }
+  .frame-resize-handle--right { right: -16px; }
+  .frame-resize-handle--top,
+  .frame-resize-handle--bottom {
+    top: auto; bottom: auto;
+    left: 60px; right: 60px;
+    height: 32px; width: auto;
+    cursor: ns-resize;
+  }
+  .frame-resize-handle--top    { top:    -16px; }
+  .frame-resize-handle--bottom { bottom: -16px; }
+  .frame-resize-handle--top::before,
+  .frame-resize-handle--bottom::before { width: 40px; height: 4px; }
+
+  /* ── Frame reset button ───────────────────────────────────────────── */
+  #frame-reset-btn {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    z-index: 1100;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: #1a1510;
+    color: rgba(255,255,255,0.75);
+    border: none;
+    border-radius: 9999px;
+    padding: 10px 16px 10px 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
+    transition: opacity 180ms ease, transform 180ms ease, box-shadow 150ms;
+  }
+  body.mobile-mode #frame-reset-btn { display: flex; }
+  #frame-reset-btn.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(0);
+  }
+  #frame-reset-btn:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.1);
+    color: #fff;
+  }
 
   /* ── Header visibility toggle ────────────────────────────────────── */
   .nav-container { transition: transform 240ms ease, opacity 240ms ease; }
@@ -2449,7 +2526,19 @@
     </svg>
   </div>
   <div class="phone-home-indicator"></div>
+  <div class="frame-resize-handle frame-resize-handle--top"    id="frame-handle-top"></div>
+  <div class="frame-resize-handle frame-resize-handle--bottom" id="frame-handle-bottom"></div>
+  <div class="frame-resize-handle frame-resize-handle--left"   id="frame-handle-left"></div>
+  <div class="frame-resize-handle frame-resize-handle--right"  id="frame-handle-right"></div>
 </div><!-- end #phone-frame -->
+
+<!-- ── Frame reset button ────────────────────────────────────────── -->
+<button id="frame-reset-btn" onclick="resetFrameSize()" aria-label="Reset frame to default size">
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+    <path d="M1.5 6.5A5 5 0 1 0 2.9 3M1.5 1v2.5H4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  Reset size
+</button>
 
 <!-- ── Dev tools panel ───────────────────────────────────────────── -->
 <div id="devtools">
@@ -4579,6 +4668,7 @@
     }
     syncDevtools();
     updateURL();
+    updateFrameResetBtn();
   }
 
   function getMobileViewport() {
@@ -4700,9 +4790,128 @@
     }
   });
 
+  // ── Frame resize ──────────────────────────────────────────────────
+  const FRAME_DEFAULT_WIDTH  = 393;
+  const FRAME_DEFAULT_HEIGHT = 852;
+  const FRAME_MIN_WIDTH      = 280;
+  const FRAME_MAX_WIDTH      = 768;
+  const FRAME_MIN_HEIGHT     = 500;
+  const FRAME_MAX_HEIGHT     = 1100;
+
+  let frameResizeDragging = false;
+  let frameResizeSide     = null;
+  let frameResizeStartX   = 0;
+  let frameResizeStartY   = 0;
+  let frameResizeStartW   = 0;
+  let frameResizeStartH   = 0;
+
+  function getCurrentFrameWidth() {
+    return cssNumber(document.documentElement, '--mobile-screen-width', FRAME_DEFAULT_WIDTH);
+  }
+  function getCurrentFrameHeight() {
+    return cssNumber(document.documentElement, '--mobile-screen-height', FRAME_DEFAULT_HEIGHT);
+  }
+
+  function setFrameWidth(w) {
+    const clamped = Math.max(FRAME_MIN_WIDTH, Math.min(FRAME_MAX_WIDTH, Math.round(w)));
+    document.documentElement.style.setProperty('--mobile-screen-width', `${clamped}px`);
+    handleViewportResize();
+    updateFrameResetBtn();
+    saveFrameSize();
+  }
+  function setFrameHeight(h) {
+    const clamped = Math.max(FRAME_MIN_HEIGHT, Math.min(FRAME_MAX_HEIGHT, Math.round(h)));
+    document.documentElement.style.setProperty('--mobile-screen-height', `${clamped}px`);
+    handleViewportResize();
+    updateFrameResetBtn();
+    saveFrameSize();
+  }
+
+  function resetFrameSize() {
+    document.documentElement.style.setProperty('--mobile-screen-width',  `${FRAME_DEFAULT_WIDTH}px`);
+    document.documentElement.style.setProperty('--mobile-screen-height', `${FRAME_DEFAULT_HEIGHT}px`);
+    clearFrameSizeStorage();
+    updateMobileFrameScale();
+    updateFrameResetBtn();
+  }
+
+  function updateFrameResetBtn() {
+    const btn = document.getElementById('frame-reset-btn');
+    if (!btn) return;
+    const wMod = Math.abs(getCurrentFrameWidth()  - FRAME_DEFAULT_WIDTH)  > 0.5;
+    const hMod = Math.abs(getCurrentFrameHeight() - FRAME_DEFAULT_HEIGHT) > 0.5;
+    btn.classList.toggle('visible', (wMod || hMod) && document.body.classList.contains('mobile-mode'));
+  }
+
+  function startFrameResize(e, side) {
+    e.preventDefault();
+    frameResizeDragging = true;
+    frameResizeSide     = side;
+    frameResizeStartX   = e.clientX;
+    frameResizeStartY   = e.clientY;
+    frameResizeStartW   = getCurrentFrameWidth();
+    frameResizeStartH   = getCurrentFrameHeight();
+    document.getElementById(`frame-handle-${side}`)?.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = (side === 'left' || side === 'right') ? 'ew-resize' : 'ns-resize';
+  }
+
+  function onFrameResizeMove(e) {
+    if (!frameResizeDragging) return;
+    const scale = getMobileFrameScale();
+    if (frameResizeSide === 'left' || frameResizeSide === 'right') {
+      const dx = (e.clientX - frameResizeStartX) / scale;
+      setFrameWidth(frameResizeSide === 'right' ? frameResizeStartW + dx : frameResizeStartW - dx);
+    } else {
+      const dy = (e.clientY - frameResizeStartY) / scale;
+      setFrameHeight(frameResizeSide === 'bottom' ? frameResizeStartH + dy : frameResizeStartH - dy);
+    }
+  }
+
+  function endFrameResize() {
+    if (!frameResizeDragging) return;
+    frameResizeDragging = false;
+    document.getElementById(`frame-handle-${frameResizeSide}`)?.classList.remove('dragging');
+    frameResizeSide            = null;
+    document.body.style.userSelect = '';
+    document.body.style.cursor     = '';
+  }
+
+  document.getElementById('frame-handle-left')  .addEventListener('mousedown', e => startFrameResize(e, 'left'));
+  document.getElementById('frame-handle-right') .addEventListener('mousedown', e => startFrameResize(e, 'right'));
+  document.getElementById('frame-handle-top')   .addEventListener('mousedown', e => startFrameResize(e, 'top'));
+  document.getElementById('frame-handle-bottom').addEventListener('mousedown', e => startFrameResize(e, 'bottom'));
+
+  function saveFrameSize() {
+    try {
+      localStorage.setItem('tsh-frame-width',  getCurrentFrameWidth());
+      localStorage.setItem('tsh-frame-height', getCurrentFrameHeight());
+    } catch (_) {}
+  }
+
+  function clearFrameSizeStorage() {
+    try {
+      localStorage.removeItem('tsh-frame-width');
+      localStorage.removeItem('tsh-frame-height');
+    } catch (_) {}
+  }
+
+  function restoreFrameSize() {
+    try {
+      const w = parseFloat(localStorage.getItem('tsh-frame-width'));
+      const h = parseFloat(localStorage.getItem('tsh-frame-height'));
+      if (Number.isFinite(w)) document.documentElement.style.setProperty('--mobile-screen-width',  `${Math.max(FRAME_MIN_WIDTH,  Math.min(FRAME_MAX_WIDTH,  w))}px`);
+      if (Number.isFinite(h)) document.documentElement.style.setProperty('--mobile-screen-height', `${Math.max(FRAME_MIN_HEIGHT, Math.min(FRAME_MAX_HEIGHT, h))}px`);
+    } catch (_) {}
+  }
+  document.addEventListener('mousemove', onFrameResizeMove);
+  document.addEventListener('mouseup',   endFrameResize);
+
   readURLParams();
+  restoreFrameSize();
   updateMobileFrameScale();
   syncDevtools();
+  updateFrameResetBtn();
 </script>
 </body>
 </html>
