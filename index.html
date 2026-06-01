@@ -7,6 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="assets/figma/flyout-work-featured.png">
+<link rel="preload" as="image" href="assets/figma/flyout-meetings-featured.jpg">
+<link rel="preload" as="image" href="assets/figma/flyout-location-default.jpg">
 <style>
   @font-face {
     font-family: 'Social Hub VF';
@@ -22,20 +25,22 @@
     --motion-hover: 250ms;
     --motion-highlight-move: 350ms;
     --motion-highlight-opacity: 210ms;
-    --motion-item-enter: 480ms;
-    --motion-item-stagger: 85ms;
-    --motion-item-open-delay: 150ms;
-    --motion-featured-enter-offset: 40ms;
+    --motion-item-enter: 300ms;
+    --motion-item-stagger: 45ms;
+    --motion-item-open-delay: 50ms;
+    --motion-item-stagger-cap: 3;
+    --motion-featured-enter-offset: 20ms;
     --motion-item-ease: cubic-bezier(0.33, 0, 0, 1);
-    --motion-item-enter-distance: 3.125rem;
-    --motion-item-switch: 100ms;
-    --motion-flyout-switch: 300ms;
+    --motion-item-enter-distance: 1.5rem;
+    --motion-item-switch: 65ms;
+    --motion-flyout-switch: 200ms;
     --motion-flyout-switch-ease: cubic-bezier(0.33, 0, 0.2, 1);
     --motion-flyout-duration: var(--motion-item-enter);
     --motion-flyout-ease: var(--motion-item-ease);
     --motion-flyout-hover-grace: 300ms;
-    --motion-flyout-loc-resize: 240ms;
+    --motion-flyout-loc-resize: 180ms;
     --motion-flyout-loc-resize-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --motion-loc-city-preview-debounce: 220ms;
     --motion-image-crossfade: 1000ms;
     --nav-elevation-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 2px 12px rgba(0,0,0,0.08);
     --flyout-nav-gap: 8px;
@@ -51,9 +56,8 @@
     --flyout-wide-row-height: 62px;
     --flyout-compact-row-height: 44px;
     --flyout-featured-size: 310px;
-    --flyout-loc-col-width: 149px;
+    --flyout-loc-col-width: 200px;
     --flyout-highlight-default: #f3f2f0;
-    --flyout-highlight-location: #1a1510;
     --mobile-screen-width: 393px;
     --mobile-screen-height: 852px;
     --mobile-screen-radius: 54px;
@@ -150,12 +154,13 @@
     transform-box: fill-box;
     transform-origin: center;
     will-change: transform;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   /* White pill */
   .nav-pill {
     background: #fff;
-    box-shadow: var(--nav-elevation-shadow);
+    box-shadow: none;
     border-radius: 32px;
     display: flex;
     align-items: center;
@@ -261,7 +266,7 @@
     width: 42px; height: 42px;
     align-items: center; justify-content: center;
     overflow: hidden;
-    background: #1a1510;
+    background: #ffffff;
     border: none; border-radius: 9999px;
     cursor: pointer; flex-shrink: 0;
     padding: 12px;
@@ -273,8 +278,8 @@
     display: block; flex-shrink: 0; object-fit: contain;
   }
   .nav-hamburger-icon line {
-    stroke: #fff;
-    stroke-width: 1.5;
+    stroke: #1a1510;
+    stroke-width: 1.667;
     stroke-linecap: round;
     transform-box: fill-box;
     transform-origin: center;
@@ -303,12 +308,12 @@
       align-items: center;
     }
     .nav-logo {
-      width: 50px; height: 50px;
+      width: 58px; height: 58px;
       margin-right: -5px;
     }
     .nav-pill {
       padding: 8px 8px 8px 20px;
-      box-shadow: 0 0 0 1px rgba(0,0,0,0.32);
+      box-shadow: none;
     }
     .nav-items {
       gap: 24px;
@@ -325,6 +330,42 @@
     }
     .nav-hamburger-btn {
       display: flex;
+    }
+    .nav-pill {
+      transition:
+        padding var(--motion-nav-pill-collapse, 280ms) var(--motion-nav-pill-collapse-ease, cubic-bezier(0.33, 0, 0, 1));
+    }
+    .nav-items {
+      transition: gap var(--motion-nav-pill-collapse, 280ms) var(--motion-nav-pill-collapse-ease, cubic-bezier(0.33, 0, 0, 1));
+    }
+    .nav-location {
+      max-width: 12rem;
+      overflow: hidden;
+      transition:
+        max-width var(--motion-nav-pill-collapse, 280ms) var(--motion-nav-pill-collapse-ease, cubic-bezier(0.33, 0, 0, 1)),
+        opacity calc(var(--motion-nav-pill-collapse, 280ms) * 0.65) ease,
+        visibility 0s linear calc(var(--motion-nav-pill-collapse, 280ms) * 0.35);
+    }
+    body:not(.nav-pill-collapsed) .nav-location-text {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 20px;
+    }
+    body.nav-pill-collapsed .nav-pill {
+      padding: 8px;
+    }
+    body.nav-pill-collapsed .nav-items {
+      gap: 0;
+    }
+    body.nav-pill-collapsed .nav-location {
+      max-width: 0;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+        max-width var(--motion-nav-pill-collapse, 280ms) var(--motion-nav-pill-collapse-ease, cubic-bezier(0.33, 0, 0, 1)),
+        opacity calc(var(--motion-nav-pill-collapse, 280ms) * 0.45) ease,
+        visibility 0s linear var(--motion-nav-pill-collapse, 280ms);
     }
     :root {
       --mobile-safe-area-top: max(59px, calc(env(safe-area-inset-top, 0px) + 12px));
@@ -425,7 +466,14 @@
   }
   .flyout-xlwide {
     width: min(
-      calc(var(--flyout-shell-padding-x) + var(--flyout-content-gap) + var(--flyout-featured-size) + var(--flyout-featured-size)),
+      calc(
+        var(--flyout-shell-padding) * 2
+        + var(--flyout-loc-col-width)
+        + var(--flyout-content-gap)
+        + var(--flyout-loc-col-width)
+        + var(--flyout-content-gap)
+        + var(--flyout-featured-size)
+      ),
       calc(100vw - var(--flyout-viewport-gutter))
     );
     gap: var(--flyout-content-gap);
@@ -475,7 +523,8 @@
   /* Location section — real box so inner height can animate (not display:contents) */
   #flyout-location.active {
     display: block;
-    width: 100%;
+    width: max-content;
+    max-width: 100%;
     min-width: 0;
   }
 
@@ -483,8 +532,9 @@
     display: flex;
     gap: var(--flyout-content-gap);
     align-items: flex-start;
-    width: 100%;
-    overflow: hidden;
+    width: max-content;
+    max-width: 100%;
+    overflow: visible;
   }
 
   /* Wide flyouts — featured stays fixed (5 rows); list can grow taller */
@@ -498,10 +548,10 @@
     transition: height var(--motion-flyout-loc-resize) var(--motion-flyout-loc-resize-ease);
   }
 
-  /* Nav switch resize — grow/shrink the shell first, reveal list/featured after */
-  .flyout-clip.flyout-clip-resizing.flyout-clip-hide-content .flyout-item,
-  .flyout-clip.flyout-clip-resizing.flyout-clip-hide-content .flyout-featured,
-  .flyout-clip.flyout-clip-resizing.flyout-clip-hide-content .flyout-loc-featured {
+  /* Nav switch — hide list/featured while swapping or sliding (height and/or position) */
+  .flyout-clip.flyout-clip-hide-content .flyout-item,
+  .flyout-clip.flyout-clip-hide-content .flyout-featured,
+  .flyout-clip.flyout-clip-hide-content .flyout-loc-featured {
     opacity: 0;
     animation: none !important;
   }
@@ -566,11 +616,9 @@
   .flyout-themed .flyout-item.flyout-item-highlighted .flyout-item-desc { color: white; }
 
   /* ── Location flyout columns ──────────────────────────────────── */
-  .flyout-loc-country .flyout-item.flyout-item-highlighted:not(.selected) .flyout-item-title { color: white; }
   .flyout-loc-country .flyout-item.selected { background: #f3f2f0; }
   .flyout-loc-country .flyout-item.selected .flyout-item-title { color: #1a1510; }
 
-  .flyout-loc-city .flyout-item.flyout-item-highlighted:not(.selected) .flyout-item-title { color: white; }
   .flyout-loc-city .flyout-item.selected { background: #f3f2f0; }
   .flyout-loc-city .flyout-item.selected .flyout-item-title { color: #1a1510; }
 
@@ -609,6 +657,57 @@
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
+  }
+
+  /* Location featured — new design: smaller image on top, text below */
+  .flyout-loc-featured {
+    height: auto;
+    min-height: unset;
+    max-height: unset;
+    aspect-ratio: unset;
+    border-radius: 0;
+    overflow: visible;
+    position: static;
+    padding: 0;
+    gap: 12px;
+    justify-content: flex-start;
+  }
+  .flyout-loc-featured-img-wrap {
+    width: 100%;
+    height: 168px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .flyout-loc-featured-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 16px 0;
+    width: 100%;
+  }
+  .flyout-loc-featured-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .flyout-loc-featured .flyout-featured-title {
+    font-size: 30px;
+    color: #1a1510;
+  }
+  .flyout-loc-featured .flyout-featured-desc {
+    margin-top: 0;
+  }
+  /* Location flyout — no divider between heading and CTA (Figma 1516:23080) */
+  .flyout-loc-featured-body .flyout-divider {
+    display: none;
+  }
+
+  /* Desktop location flyout — shadow only, no 1px outline ring */
+  body:not(.mobile-mode) .flyout.show:has(#flyout-location.active) {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   }
   .flyout-featured-img {
     position: absolute; inset: 0;
@@ -722,21 +821,21 @@
     z-index: 1;
   }
 
-  /* All locations button */
+  /* All Cities button */
   .flyout-btn {
-    display: inline-flex; align-items: center;
-    background: #fff; color: #1a1510;
-    border: none; border-radius: 9999px;
+    display: inline-flex; align-items: center; gap: 4px;
+    background: transparent; color: #1a1510;
+    border: 2px solid #1a1510; border-radius: 9999px;
     height: 42px; padding: 0 16px;
     font-size: 14px; font-weight: 600;
     letter-spacing: 0.02em; cursor: pointer;
-    font-family: inherit; margin-top: 24px;
+    font-family: inherit;
     white-space: nowrap;
-    transition: background var(--motion-hover), color var(--motion-hover);
+    transition: background var(--motion-hover), color var(--motion-hover), border-color var(--motion-hover);
   }
-  .flyout-btn:hover { background: #ffc300; color: #1a1510; }
+  .flyout-btn:hover { background: #ffc300; border-color: #ffc300; color: #1a1510; }
 
-  /* Location flyout columns — paired width matches one wide-flyout list column */
+  /* Location flyout columns — slightly wider than before (149px), not full list width */
   .flyout-loc-col {
     width: var(--flyout-loc-col-width);
     min-width: 0;
@@ -1118,10 +1217,43 @@
   body.mobile-mode.header-hidden .nav-container {
     transform: translateY(-10px);
   }
-  body.mobile-mode .nav-logo { width: 50px; height: 50px; margin-right: -5px; }
-  body.mobile-mode .nav-pill { padding: 8px 8px 8px 20px; box-shadow: 0 0 0 1px rgba(0,0,0,0.32); }
-  body.mobile-mode .nav-items { gap: 24px; height: auto; }
-  body.mobile-mode .nav-location-text { font-size: 12px; font-weight: 500; line-height: 18px; }
+  body.mobile-mode .nav-logo { width: 58px; height: 58px; margin-right: -5px; }
+  body.mobile-mode .nav-pill {
+    padding: 8px 8px 8px 20px;
+    box-shadow: none;
+    transition:
+      padding var(--motion-nav-pill-collapse, 280ms) var(--motion-nav-pill-collapse-ease, cubic-bezier(0.33, 0, 0, 1));
+  }
+  body.mobile-mode .nav-items {
+    gap: 24px;
+    height: auto;
+    transition: gap var(--motion-nav-pill-collapse, 280ms) var(--motion-nav-pill-collapse-ease, cubic-bezier(0.33, 0, 0, 1));
+  }
+  body.mobile-mode .nav-location {
+    max-width: 12rem;
+    overflow: hidden;
+    transition:
+      max-width var(--motion-nav-pill-collapse, 280ms) var(--motion-nav-pill-collapse-ease, cubic-bezier(0.33, 0, 0, 1)),
+      opacity calc(var(--motion-nav-pill-collapse, 280ms) * 0.65) ease,
+      visibility 0s linear calc(var(--motion-nav-pill-collapse, 280ms) * 0.35);
+  }
+  body.mobile-mode:not(.nav-pill-collapsed) .nav-location-text {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+  }
+  body.mobile-mode.nav-pill-collapsed .nav-pill { padding: 8px; }
+  body.mobile-mode.nav-pill-collapsed .nav-items { gap: 0; }
+  body.mobile-mode.nav-pill-collapsed .nav-location {
+    max-width: 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      max-width var(--motion-nav-pill-collapse, 280ms) var(--motion-nav-pill-collapse-ease, cubic-bezier(0.33, 0, 0, 1)),
+      opacity calc(var(--motion-nav-pill-collapse, 280ms) * 0.45) ease,
+      visibility 0s linear var(--motion-nav-pill-collapse, 280ms);
+  }
   body.mobile-mode .nav-item,
   body.mobile-mode .nav-buttons { display: none; }
   body.mobile-mode .nav-hamburger-btn { display: flex; }
@@ -1169,6 +1301,9 @@
   }
   body.mobile-mode #mobile-menu-overlay {
     position: absolute;
+    top: 0;
+    bottom: auto;
+    height: 100%;
   }
   body.mobile-menu-open #mobile-menu-overlay {
     opacity: 1;
@@ -1265,7 +1400,31 @@
   .mobile-menu-header {
     height: var(--mobile-menu-header-height);
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
     pointer-events: none;
+  }
+  .mobile-menu-header-back {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+    letter-spacing: 0.28px;
+    color: #1a1510;
+  }
+  .mobile-menu-header-back img {
+    width: 16px;
+    height: 16px;
+    display: block;
   }
 
   .mobile-menu-body {
@@ -1293,36 +1452,38 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 24px;
-    padding: 16px;
+    padding: 0 16px 16px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   .mobile-menu-featured {
-    flex-shrink: 1;
-    min-height: 0;
-    margin: calc(-1 * var(--mobile-menu-shell-padding)) calc(-1 * var(--mobile-menu-shell-padding)) 0;
+    flex-shrink: 0;
     overflow: hidden;
     position: relative;
-    border-radius: var(--mobile-menu-radius) var(--mobile-menu-radius) 0 0;
-  }
-  #mobile-menu.has-featured .mobile-menu-header {
-    display: none;
+    border-radius: 24px;
   }
   .mobile-menu-featured--card,
   .mobile-menu-featured--image {
     box-sizing: border-box;
-    height: var(--mobile-menu-featured-height);
     padding:
       var(--mobile-menu-featured-padding-top)
       var(--mobile-menu-featured-padding-x)
       var(--mobile-menu-featured-padding-bottom);
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
     gap: var(--mobile-menu-featured-gap);
+  }
+  .mobile-menu-featured--image {
+    height: var(--mobile-menu-featured-height);
+    justify-content: flex-end;
+  }
+  .mobile-menu-featured--card {
+    gap: 24px;
+    justify-content: flex-start;
+    align-items: flex-start;
   }
   .mobile-menu-featured-arrow {
     width: 32px; height: 32px;
@@ -1452,6 +1613,9 @@
     letter-spacing: 0.32px;
     color: #1a1510;
   }
+  .mobile-menu-item-title--medium {
+    font-weight: 500;
+  }
   .mobile-menu-item-desc {
     font-size: 14px;
     font-weight: 400;
@@ -1475,6 +1639,9 @@
     background: rgba(0,0,0,0.12);
     flex-shrink: 0;
   }
+  .mobile-menu-divider--inline {
+    margin: 8px 0;
+  }
 
   .mobile-menu-footer {
     flex-shrink: 0;
@@ -1485,6 +1652,9 @@
   }
   .mobile-menu-footer--sub {
     padding-bottom: 16px;
+  }
+  .mobile-menu-footer:empty {
+    display: none;
   }
   .mobile-menu-actions {
     display: flex;
@@ -1571,7 +1741,7 @@
     opacity: 0;
     pointer-events: none;
   }
-  body.mobile-menu-closing.mobile-menu-nav-restored .nav-location {
+  body.mobile-menu-closing.mobile-menu-nav-restored:not(.nav-pill-collapsed) .nav-location {
     visibility: visible;
     opacity: 1;
     pointer-events: none;
@@ -1846,7 +2016,7 @@
 
 <!-- ── Hero background ───────────────────────────────────────────── -->
 <div class="hero">
-  <img src="https://www.figma.com/api/mcp/asset/0ff45567-fa4b-4c0f-9bb0-271979e2462a" alt="">
+  <img src="assets/blog-photo-1.jpg" alt="">
   <div class="hero-overlay"></div>
 </div>
 
@@ -1921,11 +2091,11 @@
 <!-- ── Mobile full-screen menu ──────────────────────────────────── -->
 <div id="mobile-menu" aria-hidden="true">
   <div class="mobile-menu-shell">
-    <div class="mobile-menu-featured" id="mobile-menu-featured" hidden></div>
-    <div class="mobile-menu-header" aria-hidden="true"></div>
+    <div class="mobile-menu-header" id="mobile-menu-header"></div>
     <div class="mobile-menu-body">
       <div class="mobile-menu-track" id="mobile-menu-track"></div>
     </div>
+    <div class="mobile-menu-featured" id="mobile-menu-featured" hidden></div>
     <div class="mobile-menu-footer" id="mobile-menu-footer"></div>
   </div>
 </div>
@@ -1936,7 +2106,7 @@
   <!-- Blog hero -->
   <div class="blog-hero">
     <div class="blog-hero-bg">
-      <img src="https://www.figma.com/api/mcp/asset/dfe1ca78-36b2-454f-8677-18bd2526484c" alt="">
+      <img src="assets/figma/blog-hero-background.jpg" alt="">
     </div>
     <div class="blog-hero-content">
       <h1 class="blog-hero-title">The Social Hub Blog</h1>
@@ -2289,18 +2459,18 @@
   <!-- Cities — populated from JS based on country hover/selection -->
   <div class="flyout-loc-col flyout-loc-city" id="flyout-loc-city"></div>
   <div class="flyout-loc-featured">
-    <div class="flyout-loc-featured-images">
-      <img class="flyout-featured-img flyout-loc-featured-img is-visible" id="flyout-location-img-a" src="https://www.figma.com/api/mcp/asset/a61c12c8-b656-4781-be70-a2f68a2e44e1" alt="">
-      <img class="flyout-featured-img flyout-loc-featured-img" id="flyout-location-img-b" src="https://www.figma.com/api/mcp/asset/a61c12c8-b656-4781-be70-a2f68a2e44e1" alt="" aria-hidden="true">
+    <div class="flyout-loc-featured-img-wrap">
+      <div class="flyout-loc-featured-images">
+        <img class="flyout-featured-img flyout-loc-featured-img is-visible" id="flyout-location-img-a" src="assets/figma/flyout-location-default.jpg" alt="">
+        <img class="flyout-featured-img flyout-loc-featured-img" id="flyout-location-img-b" src="assets/figma/flyout-location-default.jpg" alt="" aria-hidden="true">
+      </div>
     </div>
-    <div class="flyout-featured-overlay"></div>
-    <div class="flyout-featured-arrow-btn" aria-hidden="true">
-      <img src="assets/interactive-arrow-image.svg" alt="">
-    </div>
-    <div class="flyout-featured-content">
-      <div class="flyout-featured-title">Locations</div>
-      <div class="flyout-featured-desc">21 locations across Europe — find your ideal hub in the city that inspires you most.</div>
-      <button class="flyout-btn">All locations</button>
+    <div class="flyout-loc-featured-body">
+      <div class="flyout-loc-featured-heading">
+        <div class="flyout-featured-title">Locations</div>
+        <div class="flyout-featured-desc flyout-featured-desc-dark">21 locations across Europe — find your ideal hub in the city that inspires you most.</div>
+      </div>
+      <button class="flyout-btn">All Cities <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
   </div>
   </div><!-- .flyout-loc-inner -->
@@ -2339,17 +2509,17 @@
     <div class="flyout-featured-polaroids" aria-hidden="true">
       <div class="flyout-polaroid flyout-polaroid--1">
         <div class="flyout-polaroid-photo">
-          <img src="assets/stay-polaroid-photo.jpg" alt="">
+          <img src="assets/figma/stay-polaroid-photo.jpg" alt="">
         </div>
       </div>
       <div class="flyout-polaroid flyout-polaroid--2">
         <div class="flyout-polaroid-photo">
-          <img src="assets/stay-polaroid-photo.jpg" alt="">
+          <img src="assets/figma/stay-polaroid-photo.jpg" alt="">
         </div>
       </div>
       <div class="flyout-polaroid flyout-polaroid--3">
         <div class="flyout-polaroid-photo">
-          <img src="assets/stay-polaroid-photo.jpg" alt="">
+          <img src="assets/figma/stay-polaroid-photo.jpg" alt="">
         </div>
       </div>
     </div>
@@ -2394,7 +2564,7 @@
     </div>
   </div>
   <div class="flyout-featured">
-    <img class="flyout-featured-img" src="https://www.figma.com/api/mcp/asset/5357e882-cb60-4a8d-8901-6b21142eab78" alt="">
+    <img class="flyout-featured-img" src="assets/figma/flyout-work-featured.png" alt="">
     <div class="flyout-featured-overlay"></div>
     <div class="flyout-featured-arrow-btn" aria-hidden="true">
       <img src="assets/interactive-arrow-image.svg" alt="">
@@ -2431,7 +2601,7 @@
     </div>
   </div>
   <div class="flyout-featured">
-    <img class="flyout-featured-img" src="https://www.figma.com/api/mcp/asset/c2cd74ae-a3b9-4fed-a2c9-94723438f851" alt="">
+    <img class="flyout-featured-img" src="assets/figma/flyout-meetings-featured.jpg" alt="">
     <div class="flyout-featured-overlay"></div>
     <div class="flyout-featured-arrow-btn" aria-hidden="true">
       <img src="assets/interactive-arrow-image.svg" alt="">
@@ -2492,7 +2662,7 @@
     </div>
   </div>
   <div class="flyout-featured">
-    <img class="flyout-featured-img" src="https://www.figma.com/api/mcp/asset/a61c12c8-b656-4781-be70-a2f68a2e44e1" alt="">
+    <img class="flyout-featured-img" src="Room images/long-stay-454x454.jpeg" alt="">
     <div class="flyout-featured-overlay"></div>
     <div class="flyout-featured-arrow-btn" aria-hidden="true">
       <img src="assets/interactive-arrow-image.svg" alt="">
@@ -2715,6 +2885,18 @@
 
   const panel  = document.getElementById('flyout-panel');
   const bridge = document.getElementById('flyout-bridge');
+
+  function preloadFlyoutAssets() {
+    panel?.querySelectorAll('img[src]').forEach((img) => {
+      const src = img.getAttribute('src');
+      if (!src || img.dataset.preloaded === '1') return;
+      const prefetch = new Image();
+      prefetch.decoding = 'async';
+      prefetch.src = src;
+      img.dataset.preloaded = '1';
+    });
+  }
+  preloadFlyoutAssets();
   let activeSection = null;
   let activeTrigger = null;
   let lastPointer = { x: 0, y: 0 };
@@ -2795,7 +2977,7 @@
     clip.style.opacity = currentOpacity;
 
     const duration = flyoutSwitchMs();
-    const outMs = Math.round(duration * 0.42);
+    const outMs = Math.round(duration * 0.35);
     const inMs = duration - outMs;
 
     clip.style.transition = [
@@ -2816,16 +2998,8 @@
     }).then((didResize) => {
       if (token !== flyoutSwitchToken) return;
 
-      if (!didResize) {
-        clip.style.transition = [
-          `clip-path var(--motion-flyout-duration) var(--motion-flyout-ease)`,
-          `opacity ${inMs}ms var(--motion-flyout-switch-ease)`,
-        ].join(', ');
-        clip.style.opacity = '0';
-        void clip.offsetWidth;
-        clip.style.opacity = '1';
-        return waitClipOpacity(clip, inMs);
-      }
+      // Layout path already revealed the clip; avoid a second opacity dip (visible → hidden → visible).
+      if (!didResize) return;
     }).then(() => {
       if (token !== flyoutSwitchToken) return;
       const c = flyoutClip();
@@ -2952,8 +3126,15 @@
     const featuredW = getFeaturedSize(section);
     const narrowW = readFlyoutTokenPx('--flyout-narrow-width', 320);
 
-    if (section?.classList.contains('flyout-xlwide') ||
-        section?.classList.contains('flyout-wide')) {
+    if (section?.classList.contains('flyout-xlwide')) {
+      const locColW = readFlyoutTokenPx('--flyout-loc-col-width', 200);
+      const shellPad = readFlyoutTokenPx('--flyout-shell-padding', 12) * 2;
+      return Math.min(
+        shellPad + locColW + gap + locColW + gap + featuredW,
+        viewportCap
+      );
+    }
+    if (section?.classList.contains('flyout-wide')) {
       return Math.min(panelPad + gap + featuredW * 2, viewportCap);
     }
     return Math.min(narrowW, viewportCap);
@@ -3126,10 +3307,12 @@
   function staggerEnterItems(container, selector, baseDelay = 0) {
     const duration = motionMs('--motion-item-enter');
     const stagger = motionMs('--motion-item-stagger');
+    const staggerCap = Math.max(0, parseInt(cssVar(document.documentElement, '--motion-item-stagger-cap'), 10) || 0);
     const easing = itemEnterEasing();
     container.querySelectorAll(selector).forEach((item, i) => {
+      const step = Math.min(i, staggerCap);
       item.style.animation =
-        `flyout-item-enter ${duration}ms ${easing} ${baseDelay + i * stagger}ms both`;
+        `flyout-item-enter ${duration}ms ${easing} ${baseDelay + step * stagger}ms both`;
     });
   }
 
@@ -3223,6 +3406,7 @@
   }
 
   function finishFlyoutClose() {
+    clearCityPreviewDebounce();
     panel.classList.remove('flyout-exiting', 'flyout-items-entered');
     panel.style.removeProperty('width');
     const clip = flyoutClip();
@@ -3320,7 +3504,13 @@
   function showSection(triggerId, sectionId) {
     clearTimeout(closeTimer);
     clearTimeout(exitTimer);
-    panel.classList.remove('flyout-exiting');
+    // If a close animation is mid-flight, the panel is still on screen — restore
+    // the shown state so re-opening is treated as "already visible" (cancel/crossfade)
+    // rather than a fresh open, which would snap visible content to opacity 0 and flash.
+    if (panel.classList.contains('flyout-exiting')) {
+      panel.classList.remove('flyout-exiting');
+      panel.classList.add('show');
+    }
     const trigger = document.getElementById(triggerId);
     const section = document.getElementById(sectionId);
     if (!trigger || !section) return;
@@ -3350,10 +3540,12 @@
     applyFlyoutSection(trigger, section, sectionId, false);
 
     if (!panel.classList.contains('flyout-items-entered')) {
+      const staggerCap = Math.max(0, parseInt(cssVar(document.documentElement, '--motion-item-stagger-cap'), 10) || 0);
       const itemCount = section.querySelectorAll('.flyout-item').length;
-      const animationMs = itemCount
-        ? openDelay + (itemCount - 1) * stagger + enterDuration
-        : 0;
+      const staggeredCount = itemCount ? Math.min(itemCount, staggerCap + 1) : 0;
+      const animationMs = staggeredCount
+        ? openDelay + (staggeredCount - 1) * stagger + enterDuration
+        : openDelay + enterDuration;
       lockFlyoutHighlightUntil(openDelay);
       animateItems(section, openDelay);
       setTimeout(() => {
@@ -3405,6 +3597,8 @@
   const cityColumn = document.getElementById('flyout-loc-city');
   let selectedCountryId = 'netherlands';
   let previewCountryId = null;
+  let cityPreviewDebounceTimer = null;
+  let pendingPreviewCountryId = null;
   let skipNextLocationLayoutAnim = false;
   let clipResizeTimer = null;
   let clipResizeEndHandler = null;
@@ -3418,6 +3612,33 @@
 
   function locResizeMs() {
     return motionMs('--motion-flyout-loc-resize', 350);
+  }
+
+  function locCityPreviewDebounceMs() {
+    return motionMs('--motion-loc-city-preview-debounce', 220);
+  }
+
+  function clearCityPreviewDebounce() {
+    clearTimeout(cityPreviewDebounceTimer);
+    cityPreviewDebounceTimer = null;
+    pendingPreviewCountryId = null;
+  }
+
+  function scheduleCityPreview(countryId) {
+    if (!locationData[countryId]) return;
+    clearCityPreviewDebounce();
+    pendingPreviewCountryId = countryId;
+    cityPreviewDebounceTimer = setTimeout(() => {
+      cityPreviewDebounceTimer = null;
+      const id = pendingPreviewCountryId;
+      pendingPreviewCountryId = null;
+      if (id && isLocationFlyoutActive()) renderCityList(id);
+    }, locCityPreviewDebounceMs());
+  }
+
+  function isMovingWithinLocationFlyout(related) {
+    if (!related || typeof related.closest !== 'function') return false;
+    return !!document.getElementById('flyout-location')?.contains(related);
   }
 
   function syncLocationFlyoutLayout() {
@@ -3455,6 +3676,10 @@
   }
 
   function getFlyoutFeaturedMinHeight() {
+    const locFeatured = document.querySelector('#flyout-location .flyout-loc-featured');
+    if (locFeatured && locFeatured.offsetHeight > 0) {
+      return locFeatured.offsetHeight;
+    }
     return getFeaturedSize();
   }
 
@@ -3511,9 +3736,17 @@
     clip.style.height = `${startHeight}px`;
     clip.style.overflow = 'hidden';
 
+    if (dissolveAfterResize) {
+      clip.classList.add('flyout-clip-hide-content');
+    }
+
     applyUpdate();
     void panel.offsetWidth;
     void clip.offsetHeight;
+
+    if (dissolveAfterResize) {
+      clearFlyoutItemAnimations(activeSection);
+    }
 
     const endHeight = measureFlyoutClipNaturalHeight(clip, activeSection);
     const endPanelW = getPanelWidth(activeSection);
@@ -3523,14 +3756,21 @@
     const needsLeft = Math.abs(endPanelLeft - startPanelLeft) > 1;
 
     if (!needsHeight && !needsWidth && !needsLeft) {
+      if (dissolveAfterResize && activeSection) {
+        clip.style.opacity = '1';
+        clip.classList.remove('flyout-clip-hide-content');
+        const dissolveMs = motionMs('--motion-item-switch');
+        dissolveItems(activeSection);
+        return new Promise((resolve) => {
+          clipResizeTimer = setTimeout(() => {
+            finishFlyoutClipResize();
+            resolve(true);
+          }, dissolveMs + 8);
+        });
+      }
       if (reveal) clip.style.opacity = '1';
       finishFlyoutClipResize();
       return Promise.resolve(false);
-    }
-
-    if (dissolveAfterResize) {
-      clip.classList.add('flyout-clip-hide-content');
-      clearFlyoutItemAnimations(activeSection);
     }
 
     const panelLayoutPromise = (needsWidth || needsLeft)
@@ -3542,7 +3782,7 @@
     if (needsHeight) {
       clip.classList.add('flyout-clip-resizing');
       clip.style.transition = `height ${duration}ms ${easing}`;
-      if (reveal) {
+      if (reveal && !dissolveAfterResize) {
         clip.style.opacity = '1';
       }
 
@@ -3565,7 +3805,7 @@
           clip.style.height = `${endHeight}px`;
         });
       });
-    } else if (reveal) {
+    } else if (reveal && !dissolveAfterResize) {
       clip.style.opacity = '1';
     }
 
@@ -3581,6 +3821,7 @@
 
         return new Promise((resolve) => {
           clipResizeTimer = setTimeout(() => {
+            clip.style.opacity = '1';
             clip.classList.remove('flyout-clip-hide-content');
             dissolveItems(activeSection);
             clipResizeTimer = setTimeout(() => {
@@ -3607,9 +3848,9 @@
   const locationImgB = document.getElementById('flyout-location-img-b');
   const defaultLocationImgSrc = locationImgA?.getAttribute('src');
   const roomImages = [
-    'Room images/business-stay-454x454.jpeg',
-    'Room images/hotel-stay-454x454.jpeg',
-    'Room images/long-stay-454x454.jpeg',
+    'assets/figma/flyout-work-featured.png',
+    'assets/figma/flyout-location-default.jpg',
+    'assets/figma/flyout-meetings-featured.jpg',
     'Room images/student-stay-454x454.jpeg',
   ];
   let locationFrontImg = locationImgA;
@@ -3650,9 +3891,7 @@
                        container.classList.contains('flyout-loc-city');
 
     let bgColor = cssVar(panel, '--flyout-highlight-default') || '#f3f2f0';
-    if (isLocation) {
-      bgColor = cssVar(panel, '--flyout-highlight-location') || '#1a1510';
-    } else {
+    if (!isLocation) {
       const themed = container.closest('.flyout-themed');
       if (themed) bgColor = themed.style.getPropertyValue('--accent') || bgColor;
     }
@@ -3790,6 +4029,7 @@
 
   function selectCountry(countryId) {
     if (!locationData[countryId]) return;
+    clearCityPreviewDebounce();
     selectedCountryId = countryId;
 
     countryColumn?.querySelectorAll('.flyout-item').forEach(item => {
@@ -3803,13 +4043,33 @@
     const countryId = item.dataset.country;
     if (!countryId) return;
 
-    item.addEventListener('mouseenter', () => renderCityList(countryId));
+    item.addEventListener('mouseenter', () => {
+      if (isMobileNav()) {
+        renderCityList(countryId);
+        return;
+      }
+      scheduleCityPreview(countryId);
+    });
     item.addEventListener('click', () => selectCountry(countryId));
+  });
+
+  countryColumn?.addEventListener('mouseleave', (e) => {
+    if (isMobileNav()) return;
+    if (isMovingWithinLocationFlyout(e.relatedTarget)) return;
+    clearCityPreviewDebounce();
+    if (
+      isLocationFlyoutActive() &&
+      previewCountryId &&
+      previewCountryId !== selectedCountryId
+    ) {
+      renderCityList(selectedCountryId, { force: true });
+    }
   });
 
   renderCityList(selectedCountryId);
   initSlidingHighlight(countryColumn);
   onLocationFlyoutOpen = (fromNavSwitch) => {
+    clearCityPreviewDebounce();
     /* City column is covered by animateItems on first open; never re-stagger on nav switch */
     const skipEnter = !!fromNavSwitch || !panel.classList.contains('flyout-items-entered');
     renderCityList(selectedCountryId, { skipItemEnter: skipEnter });
@@ -3826,6 +4086,7 @@
   const mobileMenuTrack = document.getElementById('mobile-menu-track');
   const mobileMenuFeatured = document.getElementById('mobile-menu-featured');
   const mobileMenuFooter = document.getElementById('mobile-menu-footer');
+  const mobileMenuHeader = document.getElementById('mobile-menu-header');
   const navLocationBtn = document.getElementById('trigger-location');
   const navHamburgerBtn = document.querySelector('.nav-hamburger-btn');
   const navLocationText = document.querySelector('.nav-location-text');
@@ -4026,8 +4287,9 @@
         { id: 'stay', label: 'Stay', action: 'stay' },
         { id: 'work', label: 'Work', action: 'work' },
         { id: 'meetings', label: 'Meetings & Events', action: 'meetings' },
-        { id: 'eat-drink', label: 'Eat & Drink', action: 'eat-drink' },
+        { id: 'eat-drink', label: 'Eat & Drink' },
         { id: 'membership', label: 'Membership', action: 'membership' },
+        { id: 'about-us', label: 'About us' },
         { id: 'help', label: 'Help', action: 'help' },
       ],
       footer: 'root',
@@ -4079,17 +4341,6 @@
       heading: 'Meetings & Events',
       featured: () => extractFlyoutFeatured('flyout-meetings'),
       items: extractFlyoutListItems('flyout-meetings'),
-      footer: 'back',
-    },
-    'eat-drink': {
-      id: 'eat-drink',
-      heading: 'Eat & Drink',
-      featured: null,
-      items: [
-        { title: 'Restaurants', desc: 'Dining at The Social Hub' },
-        { title: 'Bars', desc: 'Social spaces and rooftop bars' },
-        { title: 'Coffee', desc: 'Grab a coffee on the go' },
-      ],
       footer: 'back',
     },
     membership: {
@@ -4174,7 +4425,7 @@
   }
 
   function syncMobileFeaturedVisibility(featured, screenEl) {
-    const show = Boolean(featured) && mobileListFitsWithFeatured(screenEl);
+    const show = Boolean(featured);
     const isShown = !mobileMenuFeatured.hidden && mobileMenuFeatured.innerHTML.length > 0;
     if (show === isShown) return;
     renderFeatured(show ? featured : null);
@@ -4225,9 +4476,18 @@
       </div>`;
   }
 
+  function itemOpensSecondaryScreen(item) {
+    const action = item.action;
+    if (!action || action === 'select-city') return false;
+    if (action === 'location-countries' || action === 'location-cities' || action === 'location-current') {
+      return true;
+    }
+    return Boolean(mobileScreens[action]);
+  }
+
   function renderMenuItem(item, screenId) {
     const label = item.label || item.title;
-    const hasChevron = screenId !== 'help' && screenId !== 'profile';
+    const hasChevron = itemOpensSecondaryScreen(item);
     const iconHtml = item.icon
       ? `<img class="mobile-menu-item-icon" src="${item.icon}" width="16" height="16" alt="">`
       : '';
@@ -4235,12 +4495,15 @@
     const chevronHtml = hasChevron
       ? `<span class="mobile-menu-item-chevron"><img src="assets/icons/chevron-right.svg" width="10" height="10" alt=""></span>`
       : '';
+    const titleClass = item.id === 'location-current'
+      ? 'mobile-menu-item-title mobile-menu-item-title--medium'
+      : 'mobile-menu-item-title';
 
     return `
       <button type="button" class="mobile-menu-item" data-action="${item.action || ''}" data-screen="${item.action || ''}" data-country-id="${item.countryId || ''}" data-city="${item.city || ''}">
         ${iconHtml}
         <span class="mobile-menu-item-body">
-          <span class="mobile-menu-item-title">${label}</span>
+          <span class="${titleClass}">${label}</span>
           ${descHtml}
         </span>
         ${chevronHtml}
@@ -4266,7 +4529,12 @@
     const headingHtml = heading
       ? `<div class="mobile-menu-section"><h2 class="mobile-menu-heading">${heading}</h2>`
       : `<div class="mobile-menu-section">`;
-    const listHtml = items.map(item => renderMenuItem(item, screenState.screenId)).join('');
+    const itemsHtml = items.map(item => renderMenuItem(item, screenState.screenId));
+    const listHtml = (screenState.screenId === 'root' && itemsHtml.length > 1)
+      ? itemsHtml[0]
+        + '<div class="mobile-menu-divider mobile-menu-divider--inline"></div>'
+        + itemsHtml.slice(1).join('')
+      : itemsHtml.join('');
 
     el.innerHTML = `
       <div class="mobile-menu-screen-inner">
@@ -4283,7 +4551,7 @@
   }
 
   function renderFooter(type) {
-    mobileMenuFooter.className = 'mobile-menu-footer' + (type === 'back' ? ' mobile-menu-footer--sub' : '');
+    mobileMenuFooter.className = 'mobile-menu-footer';
     if (type === 'root') {
       mobileMenuFooter.innerHTML = `
         <div class="mobile-menu-divider"></div>
@@ -4302,15 +4570,30 @@
       return;
     }
 
-    mobileMenuFooter.innerHTML = `
-      <div class="mobile-menu-divider"></div>
-      <div class="mobile-menu-actions mobile-menu-actions--single">
-        <button type="button" class="mobile-menu-btn mobile-menu-btn--back" id="mobile-menu-back-btn">
+    mobileMenuFooter.innerHTML = '';
+  }
+
+  function getScreenBackLabel(screenState) {
+    if (!screenState) return 'Back';
+    if (screenState.screenId === 'root') return 'Menu';
+    const def = mobileScreens[screenState.screenId];
+    if (!def) return 'Back';
+    return resolveScreenHeading(def, screenState) || 'Back';
+  }
+
+  function renderHeader(prevScreenState) {
+    if (!mobileMenuHeader) return;
+    if (prevScreenState) {
+      const label = getScreenBackLabel(prevScreenState);
+      mobileMenuHeader.innerHTML = `
+        <button type="button" class="mobile-menu-header-back" id="mobile-menu-back-btn">
           <img src="assets/icons/chevron-left.svg" width="16" height="16" alt="">
-          Back
-        </button>
-      </div>`;
-    document.getElementById('mobile-menu-back-btn')?.addEventListener('click', popMobileScreen);
+          ${label}
+        </button>`;
+      document.getElementById('mobile-menu-back-btn')?.addEventListener('click', popMobileScreen);
+    } else {
+      mobileMenuHeader.innerHTML = '';
+    }
   }
 
   function updateMobileMenuView() {
@@ -4320,6 +4603,7 @@
     const screenDef = mobileScreens[top.screenId];
     const screenEl = mobileMenuTrack.children[mobileMenuStack.length - 1];
     renderFooter(screenDef.footer || 'back');
+    renderHeader(mobileMenuStack.length > 1 ? mobileMenuStack[mobileMenuStack.length - 2] : null);
     mobileMenuTrack.style.transform = `translateX(-${(mobileMenuStack.length - 1) * 100}%)`;
 
     renderFeatured(null);
@@ -4470,6 +4754,10 @@
     const viewport = getMobileViewport();
     const openAnchor = captureMobileMenuAnchor();
 
+    if (mobileMenuOverlay) {
+      mobileMenuOverlay.style.height = viewport ? `${viewport.scrollHeight}px` : '';
+    }
+
     document.body.classList.add('mobile-menu-open');
     document.body.classList.remove('mobile-menu-nav-restored', 'mobile-menu-closing');
     mobileMenuOverlay?.setAttribute('aria-hidden', 'false');
@@ -4603,6 +4891,8 @@
       mobileMenuFeatured.hidden = true;
       mobileMenuFeatured.innerHTML = '';
       mobileMenuFooter.innerHTML = '';
+      if (mobileMenuHeader) mobileMenuHeader.innerHTML = '';
+      if (mobileMenuOverlay) mobileMenuOverlay.style.height = '';
       mobileMenuStack = [];
       mobileMenuClosing = false;
     }, closeMs + 60);
@@ -4621,13 +4911,7 @@
     e.preventDefault();
     e.stopPropagation();
     if (mobileMenuOpen) return;
-    const currentCity = navLocationText?.textContent.trim() || '';
-    const countryEntry = Object.entries(locationData).find(([, data]) => data.cities.includes(currentCity));
-    if (countryEntry) {
-      openMobileMenu('location-cities', { countryId: countryEntry[0] }, [{ screenId: 'root' }, { screenId: 'location-countries' }]);
-    } else {
-      openMobileMenu('location-countries', {}, [{ screenId: 'root' }]);
-    }
+    openMobileMenu('location-countries', {}, [{ screenId: 'root' }]);
   });
 
   function handleViewportResize() {
@@ -4662,13 +4946,9 @@
 
   applyBlogDuotoneColors();
 
-  // ── Scroll-reactive logo shape ───────────────────────────────────
+  // ── Hover-driven logo shape rotation ───────────────────────────────
   const navLogoShape = document.querySelector('.nav-logo-shape');
-  let logoRotation = 0;
-  let logoTargetRotation = 0;
-  let logoLastScrollTop = getLogoScrollTop();
-  let logoAnimationFrame = null;
-  let logoScrollFrame = null;
+  const navLogo = document.querySelector('.nav-logo');
 
   function getLogoScrollRoot() {
     const viewport = getMobileViewport();
@@ -4682,45 +4962,69 @@
     return window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
   }
 
-  function setLogoScrollBaseline() {
-    logoLastScrollTop = getLogoScrollTop();
-  }
+  // 1/24 turn (15°) per hover — same step as the former per-second tick.
+  const LOGO_TICK_DEGREES = 360 / 24;
+  let logoTicks = 0;
 
-  function animateLogoRotation() {
+  function tickLogoRotation() {
     if (!navLogoShape) return;
-    logoRotation += (logoTargetRotation - logoRotation) * 0.16;
-    if (Math.abs(logoTargetRotation - logoRotation) < 0.01) {
-      logoRotation = logoTargetRotation;
-      logoAnimationFrame = null;
-    } else {
-      logoAnimationFrame = requestAnimationFrame(animateLogoRotation);
-    }
-    navLogoShape.style.transform = `rotate(${logoRotation}deg)`;
+    logoTicks += 1;
+    navLogoShape.style.transform = `rotate(${logoTicks * LOGO_TICK_DEGREES}deg)`;
   }
 
-  function queueLogoRotation() {
-    if (!logoAnimationFrame) logoAnimationFrame = requestAnimationFrame(animateLogoRotation);
-  }
-
-  function updateLogoRotationFromScroll() {
-    logoScrollFrame = null;
-    const nextScrollTop = getLogoScrollTop();
-    const delta = nextScrollTop - logoLastScrollTop;
-    if (!delta) return;
-    logoLastScrollTop = nextScrollTop;
-    logoTargetRotation += delta * 0.42;
-    queueLogoRotation();
-  }
-
-  function onLogoScroll() {
-    if (!logoScrollFrame) logoScrollFrame = requestAnimationFrame(updateLogoRotationFromScroll);
+  function bindLogoHoverRotation(el) {
+    if (!el) return;
+    el.addEventListener('mouseenter', tickLogoRotation);
   }
 
   if (navLogoShape) {
-    window.addEventListener('scroll', onLogoScroll, { passive: true });
-    const viewport = getMobileViewport();
-    if (viewport) viewport.addEventListener('scroll', onLogoScroll, { passive: true });
+    bindLogoHoverRotation(navLogo);
+    document
+      .querySelectorAll('.nav-item, .nav-location, .nav-icon-btn, .nav-hamburger-btn')
+      .forEach(bindLogoHoverRotation);
   }
+
+  // ── Mobile nav pill: extended at top, collapsed on scroll ─────────
+  const NAV_PILL_COLLAPSE_THRESHOLD = 1;
+  let navPillCollapsed = false;
+  let navPillScrollFrame = null;
+
+  function syncNavLocationA11y(collapsed) {
+    if (!navLocationBtn) return;
+    navLocationBtn.setAttribute('aria-hidden', collapsed ? 'true' : 'false');
+    navLocationBtn.tabIndex = collapsed ? -1 : 0;
+  }
+
+  function updateNavPillCollapse() {
+    navPillScrollFrame = null;
+    if (!isMobileNav()) {
+      if (navPillCollapsed) {
+        navPillCollapsed = false;
+        document.body.classList.remove('nav-pill-collapsed');
+        syncNavLocationA11y(false);
+      }
+      return;
+    }
+    const atTop = getLogoScrollTop() <= NAV_PILL_COLLAPSE_THRESHOLD;
+    const shouldCollapse = !atTop;
+    if (shouldCollapse === navPillCollapsed) return;
+    navPillCollapsed = shouldCollapse;
+    document.body.classList.toggle('nav-pill-collapsed', shouldCollapse);
+    syncNavLocationA11y(shouldCollapse);
+  }
+
+  function onNavPillScroll() {
+    if (!navPillScrollFrame) navPillScrollFrame = requestAnimationFrame(updateNavPillCollapse);
+  }
+
+  function bindNavPillScrollListeners() {
+    window.addEventListener('scroll', onNavPillScroll, { passive: true });
+    const viewport = getMobileViewport();
+    if (viewport) viewport.addEventListener('scroll', onNavPillScroll, { passive: true });
+  }
+
+  bindNavPillScrollListeners();
+  updateNavPillCollapse();
 
   // ── Dev tools panel ─────────────────────────────────────────────
   let devtoolsClickCount = 0;
@@ -4778,8 +5082,7 @@
     if (!isEntering && mobileMenuOpen) closeMobileMenu();
     document.body.classList.toggle('mobile-mode');
     updateMobileFrameScale();
-    setLogoScrollBaseline();
-    onLogoScroll();
+    updateNavPillCollapse();
     if (isEntering) {
       if (document.body.classList.contains('blog-mode')) initScrollCardObserver();
     } else {
@@ -4801,6 +5104,7 @@
     } else {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
+    updateNavPillCollapse();
   }
 
   // ── Blog mode toggle ─────────────────────────────────────────────
@@ -4817,6 +5121,7 @@
     } else {
       destroyScrollCardObserver();
     }
+    updateNavPillCollapse();
     syncDevtools();
     updateURL();
   }
@@ -4865,6 +5170,7 @@
   if (mobileBreakpoint.matches) initScrollCardObserver();
 
   mobileBreakpoint.addEventListener('change', e => {
+    updateNavPillCollapse();
     if (e.matches && document.body.classList.contains('blog-mode')) initScrollCardObserver();
     else destroyScrollCardObserver();
   });
@@ -4879,8 +5185,7 @@
     if (p.get('mobile') === '1') {
       document.body.classList.add('mobile-mode');
       updateMobileFrameScale();
-      setLogoScrollBaseline();
-      onLogoScroll();
+      updateNavPillCollapse();
       if (document.body.classList.contains('blog-mode')) initScrollCardObserver();
     }
     if (p.get('pastel') === '1') {

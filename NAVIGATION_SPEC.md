@@ -113,7 +113,7 @@ The location flyout has country, city, and featured columns. Countries are stati
 
 Country behavior:
 
-- Hovering a country previews its city list.
+- Hovering a country previews its city list after a short debounce (~220ms) so quick passes across countries do not thrash the city column.
 - Clicking a country updates the selected country.
 - The selected country is displayed with a gray background.
 
