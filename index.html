@@ -805,10 +805,16 @@
     min-height: 42px;
     flex: 0 0 42px;
   }
-  .flyout-featured-arrow-btn img {
-    width: 42px;
-    height: 42px;
-    display: block;
+  .flyout-featured-arrow-btn .arrow-squircle path { fill: #fff; }
+  .flyout-featured-yellow .flyout-featured-arrow-btn .arrow-squircle path { fill: #3a71de; }
+  .flyout-featured-arrow-btn .arrow-icon-exit path,
+  .flyout-featured-arrow-btn .arrow-icon-enter path { stroke: #1a1510; }
+  .flyout-featured-yellow .flyout-featured-arrow-btn .arrow-icon-exit path,
+  .flyout-featured-yellow .flyout-featured-arrow-btn .arrow-icon-enter path { stroke: #fff; }
+  @media (hover: hover) and (pointer: fine) and (min-width: 768px) {
+    body:not(.mobile-mode) .flyout-featured:hover .arrow-squircle { transform: rotate(0deg); }
+    body:not(.mobile-mode) .flyout-featured:hover .arrow-icon-exit  { transform: translateX(22px) scale(0.3); opacity: 0; }
+    body:not(.mobile-mode) .flyout-featured:hover .arrow-icon-enter { transform: translateX(0)    scale(1);   opacity: 1; }
   }
 
   /* Yellow featured (Stay) */
@@ -2610,7 +2616,17 @@
       </div>
     </div>
     <div class="flyout-featured-arrow-btn" aria-hidden="true">
-      <img src="assets/interactive-arrow-light.svg" alt="">
+      <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z"/>
+      </svg>
+      <div class="arrow-icon-clip">
+        <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
     </div>
     <div class="flyout-featured-content">
       <div class="flyout-featured-title flyout-featured-title-blue">
@@ -2653,7 +2669,17 @@
     <img class="flyout-featured-img" src="assets/figma/flyout-work-featured.jpg" alt="">
     <div class="flyout-featured-overlay"></div>
     <div class="flyout-featured-arrow-btn" aria-hidden="true">
-      <img src="assets/interactive-arrow-image.svg" alt="">
+      <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z"/>
+      </svg>
+      <div class="arrow-icon-clip">
+        <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
     </div>
     <div class="flyout-featured-content">
       <div class="flyout-featured-title">
@@ -2690,7 +2716,17 @@
     <img class="flyout-featured-img" src="assets/figma/flyout-meetings-featured.jpg" alt="">
     <div class="flyout-featured-overlay"></div>
     <div class="flyout-featured-arrow-btn" aria-hidden="true">
-      <img src="assets/interactive-arrow-image.svg" alt="">
+      <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z"/>
+      </svg>
+      <div class="arrow-icon-clip">
+        <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
     </div>
     <div class="flyout-featured-content">
       <div class="flyout-featured-title">
@@ -2751,7 +2787,17 @@
     <img class="flyout-featured-img" src="Room images/long-stay-454x454.jpeg" alt="">
     <div class="flyout-featured-overlay"></div>
     <div class="flyout-featured-arrow-btn" aria-hidden="true">
-      <img src="assets/interactive-arrow-image.svg" alt="">
+      <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z"/>
+      </svg>
+      <div class="arrow-icon-clip">
+        <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
     </div>
     <div class="flyout-featured-content">
       <div class="flyout-featured-title">
@@ -4430,7 +4476,9 @@
     const img = featured.querySelector('.flyout-featured-img, .flyout-loc-featured-img.is-visible, .flyout-loc-featured-img');
     const titleEl = featured.querySelector('.flyout-featured-title-text, .flyout-featured-title');
     const descEl = featured.querySelector('.flyout-featured-desc');
-    const arrowSrc = featured.querySelector('.flyout-featured-arrow-btn img')?.getAttribute('src') || 'assets/interactive-arrow-image.svg';
+    const arrowSrc = featured.classList.contains('flyout-featured-yellow')
+      ? 'assets/interactive-arrow-light.svg'
+      : 'assets/interactive-arrow-image.svg';
     return {
       type: 'image',
       img: img?.getAttribute('src') || '',
