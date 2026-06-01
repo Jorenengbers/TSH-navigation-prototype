@@ -1371,6 +1371,7 @@
   body.mobile-menu-open #mobile-menu-overlay {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
     transition:
       opacity var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       visibility 0s linear 0s;
@@ -5092,11 +5093,15 @@
     mobileMenuOpen = true;
     mobileMenuClosing = false;
 
-    const viewport = getMobileViewport();
+    const viewport = document.body.classList.contains('mobile-mode') ? getMobileViewport() : null;
     const openAnchor = captureMobileMenuAnchor();
 
     if (mobileMenuOverlay) {
-      mobileMenuOverlay.style.height = viewport ? `${viewport.scrollHeight}px` : '';
+      if (viewport) {
+        mobileMenuOverlay.style.height = `${viewport.scrollHeight}px`;
+      } else {
+        mobileMenuOverlay.style.removeProperty('height');
+      }
     }
 
     document.body.classList.add('mobile-menu-open');
@@ -5270,6 +5275,10 @@
   function handleViewportResize() {
     updateMobileFrameScale();
     if (!mobileMenuOpen) return;
+    if (mobileMenuOverlay && document.body.classList.contains('mobile-mode')) {
+      const viewport = getMobileViewport();
+      if (viewport) mobileMenuOverlay.style.height = `${viewport.scrollHeight}px`;
+    }
     syncMobileMenuModeClasses();
     applyMobileMenuOpenLayout({ animate: mobileMenuEl.classList.contains('is-visible') });
     refreshMobileFeaturedFit();
