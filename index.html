@@ -79,6 +79,7 @@
     --mobile-menu-featured-blur-mask-start: 35%;
     --mobile-menu-featured-blur-mask-end: 100%;
     --mobile-menu-header-height: 42px;
+    --mobile-menu-header-gap-below: 24px;
     --motion-mobile-menu-open: 380ms;
     --motion-mobile-menu-open-ease: cubic-bezier(0.33, 0, 0, 1);
     --motion-mobile-menu-push: 320ms;
@@ -301,8 +302,23 @@
     transform: translateY(-4px) rotate(-45deg);
   }
 
-  /* ── Mobile nav breakpoint ──────────────────────────────────────── */
-  @media (max-width: 767px) {
+  /* ── Intermediate breakpoints: 640px–1439px (hamburger + book now) */
+  @media (min-width: 640px) and (max-width: 1439px) {
+    body:not(.mobile-mode) .nav-item { display: none; }
+    body:not(.mobile-mode) .nav-icon-btn { display: none; }
+    body:not(.mobile-mode) .nav-buttons { display: flex; }
+    body:not(.mobile-mode) .nav-hamburger-btn { display: flex; }
+    body:not(.mobile-mode) .nav-items {
+      gap: 0;
+    }
+    body:not(.mobile-mode) .nav-buttons {
+      margin-left: 24px;
+      margin-right: 4px;
+    }
+  }
+
+  /* ── Mobile nav breakpoint (< 640px: full-screen mobile, no book now) */
+  @media (max-width: 639px) {
     .nav-container {
       padding: 16px 12px;
       align-items: center;
@@ -325,6 +341,8 @@
       line-height: 18px;
     }
     .nav-item,
+    .nav-icon-btn,
+    .nav-book-btn,
     .nav-buttons {
       display: none;
     }
@@ -372,6 +390,45 @@
       --mobile-safe-area-bottom: max(21px, env(safe-area-inset-bottom, 0px));
     }
   }
+
+  /* ── Panel mode (640px–1439px): preserve logo when menu is open ── */
+  @media (min-width: 640px) {
+    body.mobile-menu-open:not(.mobile-mode) .nav-logo,
+    body.mobile-menu-closing:not(.mobile-menu-nav-restored):not(.mobile-mode) .nav-logo {
+      opacity: 1;
+      visibility: visible;
+    }
+    /* Hide book now until the menu has fully closed (prevents pill width jump on close) */
+    body.mobile-menu-open:not(.mobile-mode) .nav-book-btn,
+    body.mobile-menu-closing:not(.mobile-mode) .nav-book-btn {
+      opacity: 0;
+      pointer-events: none;
+    }
+    body.mobile-menu-closing.mobile-menu-nav-restored:not(.mobile-mode) .nav-book-btn {
+      opacity: 1;
+      pointer-events: none;
+      transition: opacity 120ms ease;
+    }
+  }
+
+  /* ── Panel mode: close button in menu header ────────────────────── */
+  .mobile-menu-header-close {
+    margin-left: auto;
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 9999px;
+    flex-shrink: 0;
+    transition: background var(--motion-hover);
+  }
+  .mobile-menu-header-close:hover { background: #f3f2f0; }
+  .mobile-menu-header-close svg { display: block; }
 
   /* ── Flyout base ────────────────────────────────────────────────── */
   .flyout {
@@ -1323,21 +1380,32 @@
     position: absolute;
   }
 
+  /* Contained panel (all hamburger breakpoints): insets match .nav-container padding */
+  body.mobile-menu-panel #mobile-menu.is-visible,
+  body.mobile-menu-panel #mobile-menu.is-closing {
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.32);
+  }
+
   #mobile-menu {
     position: fixed;
     z-index: 200;
+    box-sizing: border-box;
     background: #fff;
     box-shadow: 0 0 0 1px rgba(0,0,0,0.32);
     border-radius: var(--mobile-menu-radius);
     overflow: hidden;
+    max-width: 100vw;
     visibility: hidden;
     pointer-events: none;
     transform-origin: top right;
     transition:
       top var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      right var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      bottom var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       left var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       width var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       height var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      max-height var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       border-radius var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       visibility 0s linear var(--motion-mobile-menu-open);
   }
@@ -1346,9 +1414,12 @@
     pointer-events: auto;
     transition:
       top var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      right var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      bottom var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       left var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       width var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       height var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      max-height var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       border-radius var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       visibility 0s linear 0s;
   }
@@ -1356,9 +1427,12 @@
     pointer-events: none;
     transition:
       top var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      right var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      bottom var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       left var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       width var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       height var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      max-height var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       border-radius var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       opacity 120ms ease,
       visibility 0s linear 0s;
@@ -1371,9 +1445,12 @@
     opacity: 0;
     transition:
       top var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      right var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      bottom var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       left var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       width var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       height var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      max-height var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       border-radius var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       opacity 80ms ease,
       visibility 0s linear 0s;
@@ -1402,7 +1479,9 @@
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    margin-bottom: 24px;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: var(--mobile-menu-header-gap-below);
     pointer-events: none;
   }
   .mobile-menu-header-back {
@@ -1732,8 +1811,15 @@
     box-shadow: var(--nav-elevation-shadow);
     pointer-events: none;
     transition:
-      background 120ms ease,
-      box-shadow 120ms ease;
+      background var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+      box-shadow var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease);
+  }
+  @media (min-width: 640px) {
+    body.mobile-menu-closing:not(.mobile-mode) .nav-pill {
+      transition:
+        background var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
+        box-shadow var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease);
+    }
   }
   body.mobile-menu-open .nav-location,
   body.mobile-menu-closing:not(.mobile-menu-nav-restored) .nav-location {
@@ -1768,7 +1854,7 @@
     overflow: hidden;
   }
 
-  @media (max-width: 767px) {
+  @media (max-width: 1439px) {
     body:not(.mobile-mode) .flyout,
     body:not(.mobile-mode) #flyout-bridge {
       display: none !important;
@@ -2055,15 +2141,6 @@
         </span>
       </button>
 
-      <button type="button" class="nav-hamburger-btn" id="nav-hamburger-btn" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
-        <!-- menu-01: 16×16 frame, lines at y=4/8/12, x=2–14 — morphs to close X when menu is open -->
-        <svg class="nav-hamburger-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <line class="nav-menu-line--1" x1="2" y1="4" x2="14" y2="4"/>
-          <line class="nav-menu-line--2" x1="2" y1="8" x2="14" y2="8"/>
-          <line class="nav-menu-line--3" x1="2" y1="12" x2="14" y2="12"/>
-        </svg>
-      </button>
-
       <span class="nav-item" id="trigger-stay">Stay</span>
       <span class="nav-item" id="trigger-work">Work</span>
       <span class="nav-item" id="trigger-meetings">Meeting &amp; Events</span>
@@ -2080,6 +2157,15 @@
         </button>
         <button class="nav-book-btn">Book now</button>
       </div>
+
+      <button type="button" class="nav-hamburger-btn" id="nav-hamburger-btn" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
+        <!-- menu-01: 16×16 frame, lines at y=4/8/12, x=2–14 — morphs to close X when menu is open -->
+        <svg class="nav-hamburger-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <line class="nav-menu-line--1" x1="2" y1="4" x2="14" y2="4"/>
+          <line class="nav-menu-line--2" x1="2" y1="8" x2="14" y2="8"/>
+          <line class="nav-menu-line--3" x1="2" y1="12" x2="14" y2="12"/>
+        </svg>
+      </button>
 
     </div>
   </div>
@@ -4098,7 +4184,15 @@
   let mobileMenuOpenToken = 0;
 
   function isMobileNav() {
-    return window.matchMedia('(max-width: 767px)').matches || document.body.classList.contains('mobile-mode');
+    return window.matchMedia('(max-width: 1439px)').matches || document.body.classList.contains('mobile-mode');
+  }
+
+  function isSmallMobileNav() {
+    return window.matchMedia('(max-width: 639px)').matches || document.body.classList.contains('mobile-mode');
+  }
+
+  function isMobileMenuPanelMode() {
+    return isMobileNav();
   }
 
   let mobileSafeAreaProbe = null;
@@ -4126,10 +4220,113 @@
     };
   }
 
+  const MOBILE_MENU_PANEL_MAX_WIDTH = 420;
+
+  function getViewportWidth() {
+    return document.documentElement.clientWidth;
+  }
+
+  function getViewportHeight() {
+    return window.visualViewport?.height ?? window.innerHeight;
+  }
+
+  function getMenuPanelInsets() {
+    const nav = document.getElementById('nav-container');
+    const fallback = { top: 24, right: 24, bottom: 24, left: 24 };
+    if (!nav) {
+      return {
+        ...fallback,
+        viewportWidth: getViewportWidth(),
+        viewportHeight: getViewportHeight(),
+      };
+    }
+
+    const style = getComputedStyle(nav);
+    const padTop = parseFloat(style.paddingTop) || 0;
+    const padRight = parseFloat(style.paddingRight) || 0;
+    const padBottom = parseFloat(style.paddingBottom) || 0;
+    const padLeft = parseFloat(style.paddingLeft) || 0;
+
+    const frameViewport = document.body.classList.contains('mobile-mode')
+      ? getMobileViewport()
+      : null;
+
+    if (frameViewport) {
+      const vpRect = frameViewport.getBoundingClientRect();
+      const navRect = nav.getBoundingClientRect();
+      return {
+        top: Math.round(unscaleMobileFramePx(navRect.top - vpRect.top) + padTop),
+        right: Math.round(padRight),
+        bottom: Math.round(padBottom),
+        left: Math.round(padLeft),
+        viewportWidth: frameViewport.clientWidth,
+        viewportHeight: frameViewport.clientHeight,
+      };
+    }
+
+    const rect = nav.getBoundingClientRect();
+    const vw = getViewportWidth();
+    /* Top aligns with nav content (logo / pill row), not the container border box */
+    return {
+      top: Math.round(rect.top + padTop),
+      right: Math.round(Math.max(padRight, vw - rect.right)),
+      bottom: Math.round(padBottom),
+      left: Math.round(Math.max(padLeft, rect.left)),
+      viewportWidth: vw,
+      viewportHeight: getViewportHeight(),
+    };
+  }
+
+  function getMobileMenuEndRadius() {
+    return isMobileMenuPanelMode()
+      ? cssNumber(document.documentElement, '--mobile-menu-radius', 28)
+      : 0;
+  }
+
+  function syncMobileMenuModeClasses() {
+    document.body.classList.toggle('mobile-menu-panel', isMobileMenuPanelMode());
+    document.body.classList.remove('mobile-menu-full');
+  }
+
+  function buildMobileMenuLayoutMetrics(pillRect) {
+    if (!isMobileMenuPanelMode()) {
+      const vw = getViewportWidth();
+      return {
+        gutter: 0,
+        safeBottom: getMobileSafeAreaInsets().bottom,
+        fullTop: 0,
+        fullRight: 0,
+        fullLeft: 0,
+        fullWidth: vw,
+        fullHeight: window.innerHeight,
+        useRightAnchor: false,
+      };
+    }
+
+    const insets = getMenuPanelInsets();
+    const vw = insets.viewportWidth;
+    const vh = insets.viewportHeight;
+    const panelWidth = Math.min(
+      MOBILE_MENU_PANEL_MAX_WIDTH,
+      Math.max(280, vw - insets.left - insets.right)
+    );
+    const panelHeight = Math.max(280, Math.round(vh - insets.top - insets.bottom));
+    return {
+      gutter: insets.right,
+      safeBottom: insets.bottom,
+      fullTop: insets.top,
+      fullBottom: insets.bottom,
+      fullRight: insets.right,
+      fullLeft: vw - insets.right - panelWidth,
+      fullWidth: panelWidth,
+      fullHeight: panelHeight,
+      useRightAnchor: true,
+      useInsetAnchor: true,
+    };
+  }
+
   function captureMobileMenuAnchor() {
     const viewport = getMobileViewport();
-    const gutter = cssNumber(document.documentElement, '--mobile-menu-gutter', 12);
-    const { bottom: safeBottom } = getMobileSafeAreaInsets();
 
     if (document.body.classList.contains('mobile-mode') && viewport && navPill) {
       const vpRect = viewport.getBoundingClientRect();
@@ -4142,58 +4339,24 @@
         width: unscaleMobileFramePx(pillWin.width),
         height: unscaleMobileFramePx(pillWin.height),
       };
+      const metrics = buildMobileMenuLayoutMetrics(pillRect);
 
-      return {
-        scrollTop,
-        pillRect,
-        fullTop: pillRect.top,
-        fullLeft: gutter,
-        fullWidth: viewport.clientWidth - gutter * 2,
-        fullHeight: Math.max(0, viewport.clientHeight - visibleTop - safeBottom),
-      };
+      return { scrollTop, pillRect, ...metrics };
     }
 
     const pillRect = getNavPillRectForMenu();
-    return {
-      scrollTop: 0,
-      pillRect,
-      fullTop: pillRect.top,
-      fullLeft: gutter,
-      fullWidth: window.innerWidth - gutter * 2,
-      fullHeight: Math.max(0, window.innerHeight - pillRect.top - safeBottom),
-    };
+    const metrics = buildMobileMenuLayoutMetrics(pillRect);
+
+    return { scrollTop: 0, pillRect, ...metrics };
   }
 
   function getMobileMenuLayout(anchor = null) {
     if (anchor) return anchor;
 
-    const gutter = cssNumber(document.documentElement, '--mobile-menu-gutter', 12);
-    const { bottom: safeBottom } = getMobileSafeAreaInsets();
-    const viewport = getMobileViewport();
     const pillRect = getNavPillRectForMenu();
+    const metrics = buildMobileMenuLayoutMetrics(pillRect);
 
-    if (document.body.classList.contains('mobile-mode') && viewport) {
-      const visibleTop = pillRect.top - viewport.scrollTop;
-      return {
-        gutter,
-        safeBottom,
-        pillRect,
-        fullTop: pillRect.top,
-        fullLeft: gutter,
-        fullWidth: viewport.clientWidth - gutter * 2,
-        fullHeight: Math.max(0, viewport.clientHeight - visibleTop - safeBottom),
-      };
-    }
-
-    return {
-      gutter,
-      safeBottom,
-      pillRect,
-      fullTop: pillRect.top,
-      fullLeft: gutter,
-      fullWidth: window.innerWidth - gutter * 2,
-      fullHeight: Math.max(0, window.innerHeight - pillRect.top - safeBottom),
-    };
+    return { pillRect, ...metrics };
   }
 
   function getMobileMenuBounds() {
@@ -4203,6 +4366,7 @@
       safeTop: layout.pillRect.top - (getMobileViewport()?.scrollTop ?? 0),
       safeBottom: layout.safeBottom,
       fullTop: layout.fullTop,
+      fullBottom: layout.fullBottom ?? layout.safeBottom,
       fullLeft: layout.fullLeft,
       fullWidth: layout.fullWidth,
       fullHeight: layout.fullHeight,
@@ -4583,17 +4747,26 @@
 
   function renderHeader(prevScreenState) {
     if (!mobileMenuHeader) return;
+    const closeBtnHtml = isMobileMenuPanelMode()
+      ? `<button type="button" class="mobile-menu-header-close" id="mobile-menu-close-btn" aria-label="Close menu">
+           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+             <path d="M12 4L4 12M4 4L12 12" stroke="#1a1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>
+         </button>`
+      : '';
     if (prevScreenState) {
       const label = getScreenBackLabel(prevScreenState);
       mobileMenuHeader.innerHTML = `
         <button type="button" class="mobile-menu-header-back" id="mobile-menu-back-btn">
           <img src="assets/icons/chevron-left.svg" width="16" height="16" alt="">
           ${label}
-        </button>`;
+        </button>
+        ${closeBtnHtml}`;
       document.getElementById('mobile-menu-back-btn')?.addEventListener('click', popMobileScreen);
     } else {
-      mobileMenuHeader.innerHTML = '';
+      mobileMenuHeader.innerHTML = closeBtnHtml;
     }
+    document.getElementById('mobile-menu-close-btn')?.addEventListener('click', closeMobileMenu);
   }
 
   function updateMobileMenuView() {
@@ -4730,14 +4903,134 @@
     }
   }
 
-  function setMobileMenuRect({ top, left, width, height, radius }) {
-    mobileMenuEl.style.top = `${top}px`;
-    mobileMenuEl.style.left = `${left}px`;
-    mobileMenuEl.style.right = 'auto';
-    mobileMenuEl.style.bottom = 'auto';
-    mobileMenuEl.style.width = `${width}px`;
-    mobileMenuEl.style.height = `${height}px`;
+  function getMenuPanelViewportWidth() {
+    const viewport = document.body.classList.contains('mobile-mode') ? getMobileViewport() : null;
+    return viewport ? viewport.clientWidth : getViewportWidth();
+  }
+
+  /* Freeze the menu at its on-screen box before animating (avoids left/right anchor jump). */
+  function lockMobileMenuVisualRect() {
+    const r = mobileMenuEl.getBoundingClientRect();
+    const radius = parseFloat(getComputedStyle(mobileMenuEl).borderRadius) || 0;
+    const viewport = document.body.classList.contains('mobile-mode') ? getMobileViewport() : null;
+
+    mobileMenuEl.style.transition = 'none';
+
+    if (viewport) {
+      const vpRect = viewport.getBoundingClientRect();
+      const vw = viewport.clientWidth;
+      setMobileMenuRect({
+        top: Math.round(viewport.scrollTop + unscaleMobileFramePx(r.top - vpRect.top)),
+        right: Math.round(vw - unscaleMobileFramePx(r.right - vpRect.left)),
+        width: Math.round(unscaleMobileFramePx(r.width)),
+        height: Math.round(unscaleMobileFramePx(r.height)),
+        radius,
+        useRightAnchor: true,
+        useInsetAnchor: false,
+      });
+    } else {
+      const vw = getViewportWidth();
+      setMobileMenuRect({
+        top: Math.round(r.top),
+        right: Math.round(vw - r.right),
+        width: Math.round(r.width),
+        height: Math.round(r.height),
+        radius,
+        useRightAnchor: true,
+        useInsetAnchor: false,
+      });
+    }
+
+    void mobileMenuEl.offsetWidth;
+    mobileMenuEl.style.transition = '';
+  }
+
+  function getNavPillCloseTarget() {
+    const pill = getNavPillRectForMenu();
+    const layout = getMobileMenuLayout();
+
+    if (!layout.useRightAnchor) {
+      return {
+        top: pill.top,
+        left: pill.left,
+        width: pill.width,
+        height: pill.height,
+        useRightAnchor: false,
+        useInsetAnchor: false,
+      };
+    }
+
+    const vw = getMenuPanelViewportWidth();
+    return {
+      top: pill.top,
+      right: Math.round(vw - pill.left - pill.width),
+      width: pill.width,
+      height: pill.height,
+      useRightAnchor: true,
+      useInsetAnchor: false,
+    };
+  }
+
+  function setMobileMenuRect({
+    top,
+    left,
+    right,
+    bottom,
+    width,
+    height,
+    radius,
+    useRightAnchor = false,
+    useInsetAnchor = false,
+  }) {
+    mobileMenuEl.style.top = `${Math.round(top)}px`;
+    mobileMenuEl.style.width = `${Math.round(width)}px`;
     mobileMenuEl.style.borderRadius = `${radius}px`;
+
+    if (useInsetAnchor) {
+      mobileMenuEl.style.bottom = `${Math.round(bottom)}px`;
+      mobileMenuEl.style.right = `${Math.round(right)}px`;
+      mobileMenuEl.style.left = 'auto';
+      mobileMenuEl.style.height = 'auto';
+      mobileMenuEl.style.maxHeight = `${Math.round(height)}px`;
+    } else {
+      mobileMenuEl.style.bottom = 'auto';
+      mobileMenuEl.style.maxHeight = '';
+      mobileMenuEl.style.height = `${Math.round(height)}px`;
+      if (useRightAnchor) {
+        mobileMenuEl.style.right = `${Math.round(right)}px`;
+        mobileMenuEl.style.left = 'auto';
+      } else {
+        mobileMenuEl.style.left = `${Math.round(left)}px`;
+        mobileMenuEl.style.right = 'auto';
+      }
+    }
+  }
+
+  function applyMobileMenuOpenLayout({ animate = false } = {}) {
+    const layout = getMobileMenuLayout();
+    const usePanelLayout = !!layout.useRightAnchor;
+
+    if (!animate) {
+      mobileMenuEl.style.transition = 'none';
+    }
+
+    setMobileMenuRect({
+      top: layout.fullTop,
+      bottom: layout.fullBottom ?? layout.safeBottom ?? 0,
+      left: layout.fullLeft,
+      right: layout.fullRight ?? layout.gutter ?? 0,
+      width: layout.fullWidth,
+      height: layout.fullHeight,
+      radius: getMobileMenuEndRadius(),
+      useRightAnchor: usePanelLayout,
+      /* Explicit height animates smoothly; inset + max-height snaps vertically */
+      useInsetAnchor: false,
+    });
+
+    if (!animate) {
+      void mobileMenuEl.offsetWidth;
+      mobileMenuEl.style.transition = '';
+    }
   }
 
   function openMobileMenu(initialScreen = 'root', ctx = {}, parentScreens = []) {
@@ -4760,6 +5053,7 @@
 
     document.body.classList.add('mobile-menu-open');
     document.body.classList.remove('mobile-menu-nav-restored', 'mobile-menu-closing');
+    syncMobileMenuModeClasses();
     mobileMenuOverlay?.setAttribute('aria-hidden', 'false');
     navHamburgerBtn?.setAttribute('aria-expanded', 'true');
     navHamburgerBtn?.setAttribute('aria-label', 'Close menu');
@@ -4773,8 +5067,8 @@
     rebuildMobileMenuTrack();
 
     const startRadius = 32;
-    const endRadius = cssNumber(document.documentElement, '--mobile-menu-radius', 28);
-    const { pillRect, fullTop, fullLeft, fullWidth, fullHeight } = openAnchor;
+    const endRadius = getMobileMenuEndRadius();
+    const { pillRect, fullTop, fullLeft, fullRight, fullWidth, fullHeight, useRightAnchor } = openAnchor;
 
     if (viewport) viewport.scrollTop = openAnchor.scrollTop;
 
@@ -4786,7 +5080,10 @@
       height: pillRect.height,
       radius: startRadius,
     });
-    mobileMenuEl.style.transformOrigin = `${pillRect.left + pillRect.width - fullLeft}px 0`;
+    const originX = useRightAnchor
+      ? getViewportWidth() - fullRight
+      : pillRect.left + pillRect.width - fullLeft;
+    mobileMenuEl.style.transformOrigin = `${originX}px 0`;
     void mobileMenuEl.offsetWidth;
     mobileMenuEl.style.transition = '';
 
@@ -4797,29 +5094,18 @@
       mobileMenuEl.classList.add('is-visible');
       void mobileMenuEl.offsetWidth;
 
-      const midHeight = Math.min(fullHeight * 0.38, 295);
-
       setMobileMenuRect({
         top: fullTop,
         left: fullLeft,
+        right: fullRight,
         width: fullWidth,
-        height: midHeight,
+        height: fullHeight,
         radius: endRadius,
+        useRightAnchor,
+        useInsetAnchor: false,
       });
 
       const openMs = motionMs('--motion-mobile-menu-open', 380);
-      const phaseSplit = openMs * 0.55;
-
-      setTimeout(() => {
-        if (token !== mobileMenuOpenToken) return;
-        setMobileMenuRect({
-          top: fullTop,
-          left: fullLeft,
-          width: fullWidth,
-          height: fullHeight,
-          radius: endRadius,
-        });
-      }, phaseSplit);
 
       setTimeout(() => {
         if (token !== mobileMenuOpenToken) return;
@@ -4842,9 +5128,14 @@
     mobileMenuOpen = false;
     mobileMenuOpenToken++;
 
-    const pillRect = getNavPillRectForMenu();
+    const closeLayout = getMobileMenuLayout();
+    const usePanelClose = !!closeLayout.useRightAnchor;
+    const closeTarget = getNavPillCloseTarget();
     const closeMs = motionMs('--motion-mobile-menu-open', 380);
     const handoffMs = Math.max(0, closeMs - 90);
+    const navRestoreMs = document.body.classList.contains('mobile-mode')
+      ? handoffMs
+      : Math.max(0, closeMs - 40);
 
     mobileMenuEl.classList.remove('is-content-visible');
     mobileMenuEl.classList.add('is-closing');
@@ -4854,19 +5145,29 @@
     document.body.classList.remove('mobile-menu-nav-restored');
     navLocationBtn?.classList.remove('is-fading');
 
+    if (usePanelClose) {
+      lockMobileMenuVisualRect();
+      mobileMenuEl.style.transformOrigin = `${closeTarget.width}px 0`;
+    } else {
+      mobileMenuEl.style.transformOrigin = '';
+    }
+
     void mobileMenuEl.offsetWidth;
     setMobileMenuRect({
-      top: pillRect.top,
-      left: pillRect.left,
-      width: pillRect.width,
-      height: pillRect.height,
+      top: closeTarget.top,
+      left: closeTarget.left,
+      right: closeTarget.right,
+      width: closeTarget.width,
+      height: closeTarget.height,
       radius: 32,
+      useRightAnchor: closeTarget.useRightAnchor,
+      useInsetAnchor: false,
     });
 
     setTimeout(() => {
       mobileMenuEl.classList.add('is-handoff');
       document.body.classList.add('mobile-menu-nav-restored');
-    }, handoffMs);
+    }, navRestoreMs);
 
     setTimeout(() => {
       mobileMenuEl.style.visibility = 'hidden';
@@ -4877,7 +5178,7 @@
       const snapHeaderHidden = document.body.classList.contains('header-hidden');
       if (snapHeaderHidden && navContainer) navContainer.style.transition = 'none';
 
-      document.body.classList.remove('mobile-menu-closing', 'mobile-menu-nav-restored');
+      document.body.classList.remove('mobile-menu-closing', 'mobile-menu-nav-restored', 'mobile-menu-panel', 'mobile-menu-full');
       mobileMenuOverlay?.setAttribute('aria-hidden', 'true');
       navHamburgerBtn?.setAttribute('aria-expanded', 'false');
       navHamburgerBtn?.setAttribute('aria-label', 'Menu');
@@ -4914,17 +5215,15 @@
     openMobileMenu('location-countries', {}, [{ screenId: 'root' }]);
   });
 
+  mobileMenuOverlay?.addEventListener('click', () => {
+    if (mobileMenuOpen) closeMobileMenu();
+  });
+
   function handleViewportResize() {
     updateMobileFrameScale();
     if (!mobileMenuOpen) return;
-    const { fullTop, fullLeft, fullWidth, fullHeight } = getMobileMenuLayout();
-    setMobileMenuRect({
-      top: fullTop,
-      left: fullLeft,
-      width: fullWidth,
-      height: fullHeight,
-      radius: cssNumber(document.documentElement, '--mobile-menu-radius', 28),
-    });
+    syncMobileMenuModeClasses();
+    applyMobileMenuOpenLayout({ animate: mobileMenuEl.classList.contains('is-visible') });
     refreshMobileFeaturedFit();
   }
 
@@ -4997,7 +5296,7 @@
 
   function updateNavPillCollapse() {
     navPillScrollFrame = null;
-    if (!isMobileNav()) {
+    if (!isSmallMobileNav()) {
       if (navPillCollapsed) {
         navPillCollapsed = false;
         document.body.classList.remove('nav-pill-collapsed');
