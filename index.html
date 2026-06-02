@@ -33,8 +33,10 @@
     --motion-item-ease: cubic-bezier(0.33, 0, 0, 1);
     --motion-item-enter-distance: 1.5rem;
     --motion-item-switch: 65ms;
-    --motion-flyout-switch: 200ms;
-    --motion-flyout-switch-ease: cubic-bezier(0.33, 0, 0.2, 1);
+    --motion-flyout-switch: 260ms;
+    --motion-flyout-open: 260ms;
+    --motion-flyout-switch-ease: ease-out;
+    --motion-flyout-switch-enter-offset: -8px;
     --motion-flyout-duration: var(--motion-item-enter);
     --motion-flyout-ease: var(--motion-item-ease);
     --motion-flyout-hover-grace: 300ms;
@@ -411,25 +413,6 @@
     }
   }
 
-  /* ── Panel mode: close button in menu header ────────────────────── */
-  .mobile-menu-header-close {
-    margin-left: auto;
-    pointer-events: auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    border-radius: 9999px;
-    flex-shrink: 0;
-    transition: background var(--motion-hover);
-  }
-  .mobile-menu-header-close:hover { background: #f3f2f0; }
-  .mobile-menu-header-close svg { display: block; }
-
   /* ── Flyout base ────────────────────────────────────────────────── */
   .flyout {
     position: fixed;
@@ -500,16 +483,56 @@
   }
 
   /* Slide horizontally when switching between nav items while open */
-  .flyout.show.flyout-slide:not(.flyout-exiting) {
+  .flyout.show.flyout-slide:not(.flyout-exiting):not(.flyout-switching) {
     transition:
       left var(--motion-flyout-switch) var(--motion-flyout-switch-ease),
       width var(--motion-flyout-switch) var(--motion-flyout-switch-ease),
       opacity var(--motion-flyout-duration) var(--motion-flyout-ease);
   }
-  .flyout.show.flyout-slide:not(.flyout-exiting) .flyout-clip {
+  .flyout.show.flyout-slide:not(.flyout-exiting):not(.flyout-switching) .flyout-clip {
     transition:
       clip-path var(--motion-flyout-duration) var(--motion-flyout-ease),
       opacity var(--motion-flyout-switch) var(--motion-flyout-switch-ease);
+  }
+  .flyout.show.flyout-switching {
+    pointer-events: none;
+    transition: none !important;
+  }
+  @keyframes flyout-switch-fade-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(var(--motion-flyout-switch-enter-offset));
+    }
+  }
+  @keyframes flyout-switch-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(var(--motion-flyout-switch-enter-offset));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .flyout.show.flyout-switch-out {
+    animation: flyout-switch-fade-out var(--motion-flyout-switch) var(--motion-flyout-switch-ease) forwards;
+    transition: none !important;
+  }
+  .flyout.show.flyout-switch-in {
+    animation: flyout-switch-fade-in var(--motion-flyout-switch) var(--motion-flyout-switch-ease) forwards;
+    transition: none !important;
+  }
+  .flyout.show.flyout-open-in {
+    animation: flyout-switch-fade-in var(--motion-flyout-open) var(--motion-flyout-switch-ease) forwards;
+    transition: none !important;
+  }
+  .flyout.show.flyout-switching:not(.flyout-switch-out):not(.flyout-switch-in) {
+    opacity: 0;
+    transform: translateY(var(--motion-flyout-switch-enter-offset));
   }
 
   /* Sizes */
@@ -651,6 +674,34 @@
       transform var(--motion-highlight-move) cubic-bezier(0.16, 1, 0.3, 1),
       height    var(--motion-highlight-move) cubic-bezier(0.16, 1, 0.3, 1),
       opacity   var(--motion-highlight-opacity) ease;
+  }
+  body.flyout-highlight-fade:not(.mobile-mode) .flyout-highlight {
+    display: none;
+  }
+
+  /* Fade hover mode — per-item background, no sliding pill */
+  body.flyout-highlight-fade:not(.mobile-mode) .flyout-list .flyout-item::before,
+  body.flyout-highlight-fade:not(.mobile-mode) .flyout-loc-col .flyout-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: var(--flyout-highlight-default);
+    opacity: 0;
+    transition: opacity var(--motion-highlight-opacity) ease;
+    z-index: 0;
+    pointer-events: none;
+  }
+  body.flyout-highlight-fade:not(.mobile-mode) .flyout-item-inner {
+    position: relative;
+    z-index: 1;
+  }
+  body.flyout-highlight-fade:not(.mobile-mode) .flyout-themed .flyout-item::before {
+    background: var(--accent);
+  }
+  body.flyout-highlight-fade:not(.mobile-mode) .flyout-list .flyout-item:hover::before,
+  body.flyout-highlight-fade:not(.mobile-mode) .flyout-loc-col .flyout-item:not(.selected):hover::before {
+    opacity: 1;
   }
 
   .flyout-item-inner { display: flex; flex-direction: column; gap: 0; }
@@ -1491,26 +1542,42 @@
     margin-bottom: var(--mobile-menu-header-gap-below);
     pointer-events: none;
   }
-  .mobile-menu-header-back {
+  .mobile-menu-header-back,
+  .mobile-menu-header-close {
     pointer-events: auto;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 10px 12px;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
     background: none;
     border: none;
     cursor: pointer;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 18px;
-    letter-spacing: 0.28px;
-    color: #1a1510;
+    border-radius: 9999px;
+    flex-shrink: 0;
+    opacity: 1;
+    transition:
+      background var(--motion-hover),
+      opacity var(--motion-mobile-menu-push) var(--motion-mobile-menu-push-ease);
   }
-  .mobile-menu-header-back img {
+  .mobile-menu-header-back.is-hiding,
+  .mobile-menu-header-back.is-entering {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .mobile-menu-header-back:hover,
+  .mobile-menu-header-close:hover {
+    background: #f3f2f0;
+  }
+  .mobile-menu-header-close {
+    margin-left: auto;
+  }
+  .mobile-menu-header-back svg,
+  .mobile-menu-header-close svg {
+    display: block;
     width: 16px;
     height: 16px;
-    display: block;
   }
 
   .mobile-menu-body {
@@ -1540,7 +1607,7 @@
     flex-direction: column;
     justify-content: flex-start;
     gap: 24px;
-    padding: 0 16px 16px;
+    padding: 0 16px 12px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -1549,7 +1616,7 @@
     flex-shrink: 0;
     overflow: hidden;
     position: relative;
-    border-radius: 24px;
+    border-radius: 12px;
   }
   .mobile-menu-featured--card,
   .mobile-menu-featured--image {
@@ -1690,7 +1757,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
   }
   .mobile-menu-item-title {
     font-size: 16px;
@@ -1843,6 +1910,13 @@
   body.mobile-menu-open .nav-hamburger-btn,
   body.mobile-menu-closing .nav-hamburger-btn {
     pointer-events: auto;
+  }
+  body.mobile-menu-open .nav-hamburger-btn {
+    background: none;
+    transition: background var(--motion-hover);
+  }
+  body.mobile-menu-open .nav-hamburger-btn:hover {
+    background: #f3f2f0;
   }
   body.mobile-menu-open .nav-logo,
   body.mobile-menu-closing:not(.mobile-menu-nav-restored) .nav-logo {
@@ -2152,7 +2226,7 @@
       <span class="nav-item" id="trigger-work">Work</span>
       <span class="nav-item" id="trigger-meetings">Meeting &amp; Events</span>
       <span class="nav-item">Eat &amp; Drink</span>
-      <span class="nav-item" id="trigger-membership">Membership</span>
+      <span class="nav-item">Membership</span>
       <span class="nav-item">About us</span>
       <span class="nav-item" id="trigger-help">Help</span>
 
@@ -2188,7 +2262,6 @@
     <div class="mobile-menu-body">
       <div class="mobile-menu-track" id="mobile-menu-track"></div>
     </div>
-    <div class="mobile-menu-featured" id="mobile-menu-featured" hidden></div>
     <div class="mobile-menu-footer" id="mobile-menu-footer"></div>
   </div>
 </div>
@@ -2738,77 +2811,6 @@
   </div>
 </div>
 
-<!-- Membership section — duotone accent: sky blue #66aaff -->
-<div class="flyout-section flyout-wide flyout-themed" id="flyout-membership" style="--accent:#66aaff;">
-  <div class="flyout-list">
-    <div class="flyout-item">
-      <div class="flyout-item-inner">
-        <span class="flyout-item-title">Explore Membership</span>
-        <span class="flyout-item-desc">Our community across Europe</span>
-      </div>
-    </div>
-    <div class="flyout-item">
-      <div class="flyout-item-inner">
-        <span class="flyout-item-title">Community</span>
-        <span class="flyout-item-desc">Lounge, bar and rooftop pool</span>
-      </div>
-    </div>
-    <div class="flyout-item">
-      <div class="flyout-item-inner">
-        <span class="flyout-item-title">Coworking</span>
-        <span class="flyout-item-desc">Workspaces and meeting rooms</span>
-      </div>
-    </div>
-    <div class="flyout-item">
-      <div class="flyout-item-inner">
-        <span class="flyout-item-title">Wellbeing</span>
-        <span class="flyout-item-desc">Pool, gym, classes and wellness</span>
-      </div>
-    </div>
-    <div class="flyout-item">
-      <div class="flyout-item-inner">
-        <span class="flyout-item-title">Events</span>
-        <span class="flyout-item-desc">Curated events for our community</span>
-      </div>
-    </div>
-    <div class="flyout-item">
-      <div class="flyout-item-inner">
-        <span class="flyout-item-title">Learning</span>
-        <span class="flyout-item-desc">Learning with Talent Garden</span>
-      </div>
-    </div>
-    <div class="flyout-item">
-      <div class="flyout-item-inner">
-        <span class="flyout-item-title">Discounts</span>
-        <span class="flyout-item-desc">Rates on food, stays and rooms</span>
-      </div>
-    </div>
-  </div>
-  <div class="flyout-featured">
-    <img class="flyout-featured-img" src="Room images/long-stay-454x454.jpeg" alt="">
-    <div class="flyout-featured-overlay"></div>
-    <div class="flyout-featured-arrow-btn" aria-hidden="true">
-      <svg class="arrow-squircle" viewBox="0 0 42 42" width="42" height="42" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M23.6125 0.700062L25.6023 2.69283L25.8423 2.93285L26.1705 2.84544L28.8914 2.11722L31.5013 2.81729L33.4118 4.72782L34.14 7.44881L34.2275 7.77698L34.5556 7.8644L37.2766 8.59261L39.1864 10.5024L39.8865 13.1123L39.1583 15.8332L39.0709 16.1607L39.3101 16.4007L41.2999 18.3935L42 21.0033L41.3007 23.6132L39.3079 25.603L39.0679 25.843L39.1553 26.1712L39.8835 28.8922L39.1835 31.502L37.2737 33.4118L34.5527 34.1401L34.2245 34.2275L34.1371 34.5556L33.4089 37.2766L31.4991 39.1864L28.8892 39.8865L26.1682 39.1583L25.8408 39.0709L25.6008 39.3101L23.608 41.2999L20.9981 42L18.3883 41.3007L16.3985 39.3079L16.1585 39.0679L15.8303 39.1553L13.1093 39.8835L10.4994 39.1835L8.58964 37.2737L7.86143 34.5527L7.77402 34.2245L7.44584 34.1371L4.72485 33.4089L2.81432 31.4983L2.11425 28.8885L2.84247 26.1675L2.92988 25.8401L2.6906 25.6L0.700058 23.6073L0 20.9974L0.699317 18.3875L2.69209 16.3977L2.93211 16.1577L2.84469 15.8295L2.11648 13.1086L2.81655 10.4987L4.72634 8.58891L7.44732 7.86069L7.7755 7.77328L7.86292 7.4451L8.59113 4.72412L10.5009 2.81432L13.1108 2.11426L15.8318 2.84247L16.1592 2.92989L16.3992 2.69061L18.392 0.700062L21.0019 0L23.6117 0.699321Z"/>
-      </svg>
-      <div class="arrow-icon-clip">
-        <svg class="arrow-icon-exit" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <svg class="arrow-icon-enter" viewBox="0 0 12 12" width="13" height="13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M0.833 5.5H11.167M6.5 10.167L11.167 5.5L6.5 0.833" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    </div>
-    <div class="flyout-featured-content">
-      <div class="flyout-featured-title">
-        <span class="flyout-featured-title-text">Become a member</span>
-      </div>
-      <div class="flyout-featured-desc">Enjoy premium spaces, curated events and a vibrant community from €121 monthly.</div>
-    </div>
-  </div>
-</div>
-
 <!-- Help section -->
 <div class="flyout-section flyout-narrow" id="flyout-help">
   <div class="flyout-list">
@@ -2930,6 +2932,13 @@
         </span>
         <span class="dt-switch" id="dt-pastel"></span>
       </button>
+      <button class="dt-row" onclick="toggleFlyoutHighlightFade()" role="menuitem">
+        <span class="dt-row-body">
+          <span class="dt-label">Fade list hover</span>
+          <span class="dt-hint">Per-item hover fade instead of sliding pill</span>
+        </span>
+        <span class="dt-switch" id="dt-hoverfade"></span>
+      </button>
     </div>
     <div class="dt-divider"></div>
     <div class="dt-section">
@@ -3011,7 +3020,6 @@
     { triggerId: 'trigger-stay', sectionId: 'flyout-stay' },
     { triggerId: 'trigger-work', sectionId: 'flyout-work' },
     { triggerId: 'trigger-meetings', sectionId: 'flyout-meetings' },
-    { triggerId: 'trigger-membership', sectionId: 'flyout-membership' },
     { triggerId: 'trigger-help', sectionId: 'flyout-help' },
     { triggerId: 'trigger-profile', sectionId: 'flyout-profile' },
   ];
@@ -3065,84 +3073,98 @@
     return motionMs('--motion-flyout-switch', 480);
   }
 
+  function flyoutOpenMs() {
+    return motionMs('--motion-flyout-open', 260);
+  }
+
   function cancelFlyoutContentSwitch({ preserveOpacity = false } = {}) {
     flyoutSwitchToken++;
     clearFlyoutSwitchTimers();
     flyoutLayoutAnimActive = false;
     finishFlyoutClipResize();
+    panel.classList.remove('flyout-switching', 'flyout-switch-out', 'flyout-switch-in', 'flyout-open-in');
+    panel.style.opacity = '';
+    panel.style.transform = '';
+    panel.style.transition = '';
+    panel.style.animation = '';
     const clip = flyoutClip();
     if (clip) {
       const currentOpacity = getComputedStyle(clip).opacity;
       clip.classList.remove('flyout-switch-fade-out', 'flyout-clip-hide-content');
       clip.style.opacity = preserveOpacity ? currentOpacity : '';
+      clip.style.transition = '';
     }
   }
 
-  function waitClipOpacity(clip, ms) {
+  function waitPanelAnimation(panelEl, ms) {
     return new Promise((resolve) => {
       let settled = false;
       const finish = () => {
         if (settled) return;
         settled = true;
-        clip.removeEventListener('transitionend', onEnd);
+        panelEl.removeEventListener('animationend', onEnd);
         resolve();
       };
       const onEnd = (e) => {
-        if (e.target !== clip || e.propertyName !== 'opacity') return;
+        if (e.target !== panelEl) return;
         finish();
       };
-      clip.addEventListener('transitionend', onEnd);
+      panelEl.addEventListener('animationend', onEnd);
       flyoutSwitchTimers.push(setTimeout(finish, ms + 40));
     });
   }
 
-  function crossfadeFlyoutContent(applyUpdate) {
+  function applyFlyoutSwitchInstant(applyUpdate) {
+    finishFlyoutClipResize();
+    panel.style.transition = 'none';
+    applyUpdate();
+    void panel.offsetWidth;
+
     const clip = flyoutClip();
-    if (!clip) {
-      applyUpdate();
-      return;
+    if (clip && activeSection) {
+      clip.style.transition = 'none';
+      clip.style.height = `${measureFlyoutClipNaturalHeight(clip, activeSection)}px`;
+      clip.style.overflow = 'hidden';
     }
 
+    if (activeTrigger && activeSection) positionPanel(activeTrigger, activeSection);
+    updateBridge();
+    finishFlyoutClipResize();
+  }
+
+  function fadeFlyoutSwitch(applyUpdate) {
     const token = ++flyoutSwitchToken;
     clearFlyoutSwitchTimers();
-    const currentOpacity = getComputedStyle(clip).opacity;
-    clip.classList.remove('flyout-switch-fade-out');
-    clip.style.opacity = currentOpacity;
+    finishFlyoutClipResize();
+
+    const clip = flyoutClip();
+    if (clip) {
+      clip.classList.remove('flyout-switch-fade-out', 'flyout-clip-hide-content');
+      clip.style.opacity = '';
+      clip.style.transition = '';
+    }
 
     const duration = flyoutSwitchMs();
-    const outMs = Math.round(duration * 0.35);
-    const inMs = duration - outMs;
 
-    clip.style.transition = [
-      `clip-path var(--motion-flyout-duration) var(--motion-flyout-ease)`,
-      `opacity ${outMs}ms var(--motion-flyout-switch-ease)`,
-    ].join(', ');
+    panel.classList.remove('flyout-switch-in', 'flyout-open-in', 'flyout-switch-out');
+    panel.style.animation = 'none';
+    panel.classList.add('flyout-switching');
 
-    void clip.offsetWidth;
-    clip.style.opacity = '0';
+    applyFlyoutSwitchInstant(applyUpdate);
 
-    waitClipOpacity(clip, outMs).then(() => {
+    void panel.offsetWidth;
+    panel.style.animation = '';
+    panel.classList.add('flyout-switch-in');
+
+    waitPanelAnimation(panel, duration).then(() => {
       if (token !== flyoutSwitchToken) return;
 
-      return animateFlyoutClipLayout(applyUpdate, {
-        reveal: true,
-        dissolveAfterResize: true,
-      });
-    }).then((didResize) => {
-      if (token !== flyoutSwitchToken) return;
-
-      // Layout path already revealed the clip; avoid a second opacity dip (visible → hidden → visible).
-      if (!didResize) return;
-    }).then(() => {
-      if (token !== flyoutSwitchToken) return;
-      const c = flyoutClip();
-      if (c) {
-        c.classList.remove('flyout-switch-fade-out');
-        c.style.transition = '';
-        c.style.opacity = '';
-      }
+      panel.classList.remove('flyout-switching', 'flyout-switch-in');
+      panel.style.animation = '';
+      panel.style.transform = '';
       if (activeTrigger && activeSection) positionPanel(activeTrigger, activeSection);
       else ensureFlyoutInViewport();
+      updateBridge();
       syncHighlightFromPointer(activeSection);
     });
   }
@@ -3540,8 +3562,12 @@
 
   function finishFlyoutClose() {
     clearCityPreviewDebounce();
-    panel.classList.remove('flyout-exiting', 'flyout-items-entered');
+    panel.classList.remove('flyout-exiting', 'flyout-items-entered', 'flyout-switching', 'flyout-switch-out', 'flyout-switch-in', 'flyout-open-in');
     panel.style.removeProperty('width');
+    panel.style.removeProperty('opacity');
+    panel.style.removeProperty('transform');
+    panel.style.removeProperty('transition');
+    panel.style.removeProperty('animation');
     const clip = flyoutClip();
     if (clip) {
       clip.classList.remove('flyout-switch-fade-out', 'flyout-clip-hide-content');
@@ -3657,35 +3683,33 @@
 
     cancelFlyoutContentSwitch();
 
-    const openDelay = motionMs('--motion-item-open-delay');
-    const enterDuration = motionMs('--motion-item-enter');
-    const stagger = motionMs('--motion-item-stagger');
-    const switchDuration = flyoutSwitchMs();
-
     if (wasVisible) {
-      lockFlyoutHighlightUntil(
-        switchDuration + locResizeMs() + motionMs('--motion-item-switch') + 40
-      );
-      crossfadeFlyoutContent(() => applyFlyoutSection(trigger, section, sectionId, true));
+      lockFlyoutHighlightUntil(flyoutSwitchMs() + 40);
+      fadeFlyoutSwitch(() => applyFlyoutSection(trigger, section, sectionId, true));
       return;
     }
 
     applyFlyoutSection(trigger, section, sectionId, false);
 
-    if (!panel.classList.contains('flyout-items-entered')) {
-      const staggerCap = Math.max(0, parseInt(cssVar(document.documentElement, '--motion-item-stagger-cap'), 10) || 0);
-      const itemCount = section.querySelectorAll('.flyout-item').length;
-      const staggeredCount = itemCount ? Math.min(itemCount, staggerCap + 1) : 0;
-      const animationMs = staggeredCount
-        ? openDelay + (staggeredCount - 1) * stagger + enterDuration
-        : openDelay + enterDuration;
-      lockFlyoutHighlightUntil(openDelay);
-      animateItems(section, openDelay);
-      setTimeout(() => {
-        clearFlyoutItemAnimations(section);
-        panel.classList.add('flyout-items-entered');
-      }, animationMs);
-    }
+    lockFlyoutHighlightUntil(flyoutOpenMs());
+
+    const clip = flyoutClip();
+    if (clip) clip.style.transition = 'none';
+
+    panel.classList.remove('flyout-switch-in', 'flyout-open-in');
+    panel.style.animation = 'none';
+    void panel.offsetWidth;
+    panel.style.animation = '';
+    panel.classList.add('flyout-open-in');
+
+    waitPanelAnimation(panel, flyoutOpenMs()).then(() => {
+      if (!panel.classList.contains('show') || panel.classList.contains('flyout-exiting')) return;
+      panel.classList.remove('flyout-open-in');
+      panel.style.animation = '';
+      panel.style.transform = '';
+      if (clip) clip.style.transition = '';
+      panel.classList.add('flyout-items-entered');
+    });
   }
 
   function scheduleFlyoutClose() {
@@ -4017,8 +4041,46 @@
     dissolveLocationImage(defaultLocationImgSrc);
   }
 
-  function initSlidingHighlight(container) {
+  function initFlyoutHighlight(container) {
     container.querySelector('.flyout-highlight')?.remove();
+    delete container._flyoutHighlight;
+
+    if (isFlyoutHighlightFadeMode()) {
+      const isLocation = container.classList.contains('flyout-loc-country') ||
+                         container.classList.contains('flyout-loc-city');
+      let highlightedItem = null;
+
+      function setHighlightedItem(item) {
+        if (highlightedItem) highlightedItem.classList.remove('flyout-item-highlighted');
+        highlightedItem = item || null;
+        if (highlightedItem) highlightedItem.classList.add('flyout-item-highlighted');
+      }
+
+      function reset() {
+        setHighlightedItem(null);
+      }
+
+      function activate(item) {
+        if (flyoutHighlightLocked || !item || !container.contains(item)) return;
+        if (item.classList.contains('selected') && isLocation) {
+          reset();
+          return;
+        }
+        setHighlightedItem(item);
+      }
+
+      container.querySelectorAll('.flyout-item').forEach(item => {
+        item.addEventListener('mouseenter', () => activate(item));
+      });
+      container.addEventListener('mouseleave', reset);
+      container._flyoutHighlight = { reset, activate };
+      return;
+    }
+
+    initSlidingHighlight(container);
+  }
+
+  function initSlidingHighlight(container) {
 
     const isLocation = container.classList.contains('flyout-loc-country') ||
                        container.classList.contains('flyout-loc-city');
@@ -4117,7 +4179,7 @@
       </div>
     `).join('');
 
-    initSlidingHighlight(cityColumn);
+    initFlyoutHighlight(cityColumn);
 
     cityColumn.querySelectorAll('.flyout-item').forEach(item => {
       item.addEventListener('mouseenter', setRandomLocationImage);
@@ -4200,7 +4262,7 @@
   });
 
   renderCityList(selectedCountryId);
-  initSlidingHighlight(countryColumn);
+  initFlyoutHighlight(countryColumn);
   onLocationFlyoutOpen = (fromNavSwitch) => {
     clearCityPreviewDebounce();
     /* City column is covered by animateItems on first open; never re-stagger on nav switch */
@@ -4210,14 +4272,17 @@
 
   // ── Sliding highlight (non-location lists) ───────────────────────
   document.querySelectorAll('.flyout-list').forEach(container => {
-    initSlidingHighlight(container);
+    initFlyoutHighlight(container);
   });
 
   // ── Mobile menu ──────────────────────────────────────────────────
   const mobileMenuEl = document.getElementById('mobile-menu');
   const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
   const mobileMenuTrack = document.getElementById('mobile-menu-track');
-  const mobileMenuFeatured = document.getElementById('mobile-menu-featured');
+  const mobileMenuFeatured = document.createElement('div');
+  mobileMenuFeatured.id = 'mobile-menu-featured';
+  mobileMenuFeatured.className = 'mobile-menu-featured';
+  mobileMenuFeatured.hidden = true;
   const mobileMenuFooter = document.getElementById('mobile-menu-footer');
   const mobileMenuHeader = document.getElementById('mobile-menu-header');
   const navLocationBtn = document.getElementById('trigger-location');
@@ -4228,6 +4293,7 @@
   let mobileMenuOpen = false;
   let mobileMenuClosing = false;
   let mobileMenuStack = [];
+  let mobileMenuBackEnter = false;
   let mobileMenuOpenToken = 0;
 
   function isMobileNav() {
@@ -4501,7 +4567,7 @@
         { id: 'work', label: 'Work', action: 'work' },
         { id: 'meetings', label: 'Meetings & Events', action: 'meetings' },
         { id: 'eat-drink', label: 'Eat & Drink' },
-        { id: 'membership', label: 'Membership', action: 'membership' },
+        { id: 'membership', label: 'Membership' },
         { id: 'about-us', label: 'About us' },
         { id: 'help', label: 'Help', action: 'help' },
       ],
@@ -4556,13 +4622,6 @@
       items: extractFlyoutListItems('flyout-meetings'),
       footer: 'back',
     },
-    membership: {
-      id: 'membership',
-      heading: 'Membership',
-      featured: () => extractFlyoutFeatured('flyout-membership'),
-      items: extractFlyoutListItems('flyout-membership'),
-      footer: 'back',
-    },
     help: {
       id: 'help',
       heading: 'Help',
@@ -4597,54 +4656,13 @@
     return typeof screenDef.featured === 'function' ? screenDef.featured() : screenDef.featured;
   }
 
-  function getMobileFeaturedHeight() {
-    return cssNumber(document.documentElement, '--mobile-menu-featured-height', 168);
-  }
-
-  function getMobileMenuShellContentHeight() {
-    const shell = mobileMenuEl?.querySelector('.mobile-menu-shell');
-    if (!shell) return 0;
-    const shellStyle = getComputedStyle(shell);
-    const shellPaddingY =
-      parseFloat(shellStyle.paddingTop) + parseFloat(shellStyle.paddingBottom);
-    const footerH = mobileMenuFooter?.offsetHeight || 0;
-    return Math.max(0, shell.clientHeight - shellPaddingY - footerH);
-  }
-
-  function getMobileListContentHeight(screenEl) {
+  function placeMobileFeaturedInScreen(screenEl) {
     const inner = screenEl?.querySelector('.mobile-menu-screen-inner');
-    if (!inner) return 0;
-
-    const innerStyle = getComputedStyle(inner);
-    const paddingY =
-      parseFloat(innerStyle.paddingTop) + parseFloat(innerStyle.paddingBottom);
-    const gap = parseFloat(innerStyle.rowGap || innerStyle.gap) || 0;
-
-    const heading = inner.querySelector('.mobile-menu-heading');
-    const list = inner.querySelector('.mobile-menu-list');
-    let contentH = paddingY;
-    if (heading) contentH += heading.offsetHeight + gap;
-    if (list) contentH += list.scrollHeight;
-    else contentH += inner.scrollHeight - paddingY;
-
-    return contentH;
+    if (!inner || mobileMenuFeatured.parentElement === inner) return;
+    inner.appendChild(mobileMenuFeatured);
   }
 
-  function mobileListFitsWithFeatured(screenEl) {
-    const listH = getMobileListContentHeight(screenEl);
-    const shellContentH = getMobileMenuShellContentHeight();
-    const featuredH = getMobileFeaturedHeight();
-    return listH + featuredH <= shellContentH + 0.5;
-  }
-
-  function syncMobileFeaturedVisibility(featured, screenEl) {
-    const show = Boolean(featured);
-    const isShown = !mobileMenuFeatured.hidden && mobileMenuFeatured.innerHTML.length > 0;
-    if (show === isShown) return;
-    renderFeatured(show ? featured : null);
-  }
-
-  function renderFeatured(featured) {
+  function renderFeatured(featured, screenEl) {
     const mobileMenu = document.getElementById('mobile-menu');
     if (!featured) {
       mobileMenuFeatured.hidden = true;
@@ -4655,6 +4673,7 @@
       return;
     }
 
+    placeMobileFeaturedInScreen(screenEl);
     mobileMenuFeatured.hidden = false;
     mobileMenu.classList.add('has-featured');
 
@@ -4794,21 +4813,25 @@
     return resolveScreenHeading(def, screenState) || 'Back';
   }
 
-  function renderHeader(prevScreenState) {
+  function renderHeader(prevScreenState, animateBackIn = false) {
     if (!mobileMenuHeader) return;
     const closeBtnHtml = isMobileMenuPanelMode()
       ? `<button type="button" class="mobile-menu-header-close" id="mobile-menu-close-btn" aria-label="Close menu">
            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-             <path d="M12 4L4 12M4 4L12 12" stroke="#1a1510" stroke-width="1.667" stroke-linecap="round" stroke-linejoin="round"/>
+             <path d="M12 4L4 12M4 4L12 12" stroke="#1a1510" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
            </svg>
          </button>`
       : '';
     if (prevScreenState) {
       const label = getScreenBackLabel(prevScreenState);
+      const backBtnClass = animateBackIn
+        ? 'mobile-menu-header-back is-entering'
+        : 'mobile-menu-header-back';
       mobileMenuHeader.innerHTML = `
-        <button type="button" class="mobile-menu-header-back" id="mobile-menu-back-btn">
-          <img src="assets/icons/chevron-left.svg" width="16" height="16" alt="">
-          ${label}
+        <button type="button" class="${backBtnClass}" id="mobile-menu-back-btn" aria-label="${label}">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M10.4 2.4L4.8 8L10.4 13.6" stroke="#1a1510" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
         ${closeBtnHtml}`;
       document.getElementById('mobile-menu-back-btn')?.addEventListener('click', popMobileScreen);
@@ -4825,23 +4848,16 @@
     const screenDef = mobileScreens[top.screenId];
     const screenEl = mobileMenuTrack.children[mobileMenuStack.length - 1];
     renderFooter(screenDef.footer || 'back');
-    renderHeader(mobileMenuStack.length > 1 ? mobileMenuStack[mobileMenuStack.length - 2] : null);
+    renderHeader(
+      mobileMenuStack.length > 1 ? mobileMenuStack[mobileMenuStack.length - 2] : null,
+      mobileMenuBackEnter,
+    );
+    mobileMenuBackEnter = false;
     mobileMenuTrack.style.transform = `translateX(-${(mobileMenuStack.length - 1) * 100}%)`;
 
     renderFeatured(null);
     void mobileMenuEl.offsetWidth;
-    syncMobileFeaturedVisibility(resolveScreenFeatured(screenDef), screenEl);
-  }
-
-  function refreshMobileFeaturedFit() {
-    if (!mobileMenuOpen || mobileMenuClosing) return;
-    const top = mobileMenuStack[mobileMenuStack.length - 1];
-    if (!top) return;
-    const screenDef = mobileScreens[top.screenId];
-    const screenEl = mobileMenuTrack.children[mobileMenuStack.length - 1];
-    renderFeatured(null);
-    void mobileMenuEl.offsetWidth;
-    syncMobileFeaturedVisibility(resolveScreenFeatured(screenDef), screenEl);
+    renderFeatured(resolveScreenFeatured(screenDef), screenEl);
   }
 
   function clearMobileMenuScreenAnimations(screenEl) {
@@ -4890,10 +4906,19 @@
   }
 
   function pushMobileScreen(screenId, ctx = {}) {
+    const enteringFromRoot = mobileMenuStack.length === 1;
     mobileMenuStack.push({ screenId, ...ctx });
     const screenEl = renderScreen(mobileMenuStack[mobileMenuStack.length - 1]);
     mobileMenuTrack.appendChild(screenEl);
+    mobileMenuBackEnter = enteringFromRoot;
     updateMobileMenuView();
+    const backBtn = document.getElementById('mobile-menu-back-btn');
+    if (enteringFromRoot && backBtn) {
+      void backBtn.offsetWidth;
+      requestAnimationFrame(() => {
+        backBtn.classList.remove('is-entering');
+      });
+    }
     void mobileMenuTrack.offsetWidth;
     mobileMenuTrack.style.transform = `translateX(-${(mobileMenuStack.length - 1) * 100}%)`;
     animateMobileMenuScreen(screenEl);
@@ -4902,6 +4927,12 @@
   function popMobileScreen() {
     if (mobileMenuStack.length <= 1) return;
     const pushDur = motionMs('--motion-mobile-menu-push', 320);
+    const returningToRoot = mobileMenuStack.length === 2;
+    const backBtn = document.getElementById('mobile-menu-back-btn');
+
+    if (returningToRoot && backBtn) {
+      backBtn.classList.add('is-hiding');
+    }
 
     if (mobileMenuFeatured && !mobileMenuFeatured.hidden) {
       mobileMenuFeatured.style.animation = 'none';
@@ -5164,7 +5195,6 @@
         if (token !== mobileMenuOpenToken) return;
         navLocationBtn?.classList.remove('is-fading');
         mobileMenuEl.classList.add('is-content-visible');
-        refreshMobileFeaturedFit();
         animateMobileMenuScreen(mobileMenuTrack.lastElementChild);
       }, openMs * 0.72);
     };
@@ -5281,7 +5311,6 @@
     }
     syncMobileMenuModeClasses();
     applyMobileMenuOpenLayout({ animate: mobileMenuEl.classList.contains('is-visible') });
-    refreshMobileFeaturedFit();
   }
 
   window.addEventListener('resize', handleViewportResize);
@@ -5399,6 +5428,22 @@
     document.getElementById('dt-blog').classList.toggle('on', b.classList.contains('blog-mode'));
     document.getElementById('dt-mobile').classList.toggle('on', b.classList.contains('mobile-mode'));
     document.getElementById('dt-pastel').classList.toggle('on', b.classList.contains('blog-pastel-duotone'));
+    document.getElementById('dt-hoverfade').classList.toggle('on', b.classList.contains('flyout-highlight-fade'));
+  }
+
+  function isFlyoutHighlightFadeMode() {
+    return document.body.classList.contains('flyout-highlight-fade');
+  }
+
+  function reinitAllFlyoutHighlights() {
+    document.querySelectorAll('.flyout-list, .flyout-loc-country, .flyout-loc-city').forEach(initFlyoutHighlight);
+  }
+
+  function toggleFlyoutHighlightFade() {
+    document.body.classList.toggle('flyout-highlight-fade');
+    reinitAllFlyoutHighlights();
+    syncDevtools();
+    updateURL();
   }
 
   function togglePastelDuotone() {
@@ -5414,6 +5459,7 @@
     p.set('blog',   b.classList.contains('blog-mode')     ? '1' : '0');
     p.set('mobile', b.classList.contains('mobile-mode')   ? '1' : '0');
     p.set('pastel', b.classList.contains('blog-pastel-duotone') ? '1' : '0');
+    p.set('hoverfade', b.classList.contains('flyout-highlight-fade') ? '1' : '0');
     p.set('header', b.classList.contains('header-hidden') ? '0' : '1');
     history.replaceState(null, '', '?' + p.toString());
   }
@@ -5547,6 +5593,10 @@
     if (p.get('pastel') === '1') {
       document.body.classList.add('blog-pastel-duotone');
       applyBlogDuotoneColors();
+    }
+    if (p.get('hoverfade') === '1') {
+      document.body.classList.add('flyout-highlight-fade');
+      reinitAllFlyoutHighlights();
     }
     if (p.get('header') === '1') {
       document.body.classList.remove('header-hidden');
