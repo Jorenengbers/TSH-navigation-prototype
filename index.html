@@ -813,10 +813,6 @@
     display: none;
   }
 
-  /* Desktop location flyout — shadow only, no 1px outline ring */
-  body:not(.mobile-mode) .flyout.show:has(#flyout-location.active) {
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  }
   .flyout-featured-img {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
@@ -2177,7 +2173,7 @@
   }
 </style>
 </head>
-<body class="blog-mode header-hidden">
+<body class="blog-mode">
 
 <div id="mobile-viewport">
 
@@ -5601,6 +5597,8 @@
     if (p.get('header') === '1') {
       document.body.classList.remove('header-hidden');
       devtoolsClickCount = 4; // already unlocked via URL
+    } else if (p.get('header') === '0') {
+      document.body.classList.add('header-hidden');
     }
   }
 
