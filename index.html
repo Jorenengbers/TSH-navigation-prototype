@@ -152,6 +152,9 @@
     flex-shrink: 0; cursor: pointer;
     position: relative;
   }
+  body:not(.mobile-mode) .nav-logo {
+    filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.12)) drop-shadow(0 2px 12px rgba(0, 0, 0, 0.08));
+  }
   .nav-logo svg { width: 103%; height: 103%; margin: -1.5%; display: block; overflow: visible; }
   .nav-logo-shape {
     transform-box: fill-box;
@@ -169,6 +172,9 @@
     align-items: center;
     padding: 8px 8px 8px 28px;
     flex-shrink: 0;
+  }
+  body:not(.mobile-mode) .nav-pill {
+    box-shadow: var(--nav-elevation-shadow);
   }
 
   /* Items row */
@@ -1410,10 +1416,10 @@
       visibility 0s linear var(--motion-mobile-menu-open);
   }
   body.mobile-mode #mobile-menu-overlay {
-    position: absolute;
-    top: 0;
-    bottom: auto;
-    height: 100%;
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
   }
   body.mobile-menu-open #mobile-menu-overlay {
     opacity: 1;
@@ -1430,8 +1436,9 @@
       opacity var(--motion-mobile-menu-open) var(--motion-mobile-menu-open-ease),
       visibility 0s linear var(--motion-mobile-menu-open);
   }
+  /* Fixed to the phone frame (transform on #mobile-viewport), not document scroll */
   body.mobile-mode #mobile-menu {
-    position: absolute;
+    position: fixed;
   }
 
   /* Contained panel (all hamburger breakpoints): insets match .nav-container padding */
@@ -2994,6 +3001,21 @@
     return value / getMobileFrameScale();
   }
 
+  /* Pill rect in phone-frame coordinates (ignores scroll — for fixed menu positioning). */
+  function getNavPillRectInMobileFrame() {
+    if (!document.body.classList.contains('mobile-mode')) return null;
+    const viewport = getMobileViewport();
+    if (!viewport || !navPill) return null;
+    const vpRect = viewport.getBoundingClientRect();
+    const pillWin = navPill.getBoundingClientRect();
+    return {
+      top: unscaleMobileFramePx(pillWin.top - vpRect.top),
+      left: unscaleMobileFramePx(pillWin.left - vpRect.left),
+      width: unscaleMobileFramePx(pillWin.width),
+      height: unscaleMobileFramePx(pillWin.height),
+    };
+  }
+
   function updateMobileFrameScale() {
     if (!document.body.classList.contains('mobile-mode')) {
       document.documentElement.style.setProperty('--mobile-frame-scale', '1');
@@ -4435,28 +4457,16 @@
   }
 
   function captureMobileMenuAnchor() {
-    const viewport = getMobileViewport();
-
-    if (document.body.classList.contains('mobile-mode') && viewport && navPill) {
-      const vpRect = viewport.getBoundingClientRect();
-      const pillWin = navPill.getBoundingClientRect();
-      const visibleTop = unscaleMobileFramePx(pillWin.top - vpRect.top);
-      const scrollTop = viewport.scrollTop;
-      const pillRect = {
-        top: scrollTop + visibleTop,
-        left: unscaleMobileFramePx(pillWin.left - vpRect.left),
-        width: unscaleMobileFramePx(pillWin.width),
-        height: unscaleMobileFramePx(pillWin.height),
-      };
-      const metrics = buildMobileMenuLayoutMetrics(pillRect);
-
-      return { scrollTop, pillRect, ...metrics };
+    const framePill = getNavPillRectInMobileFrame();
+    if (framePill) {
+      const metrics = buildMobileMenuLayoutMetrics(framePill);
+      return { pillRect: framePill, ...metrics };
     }
 
     const pillRect = getNavPillRectForMenu();
     const metrics = buildMobileMenuLayoutMetrics(pillRect);
 
-    return { scrollTop: 0, pillRect, ...metrics };
+    return { pillRect, ...metrics };
   }
 
   function getMobileMenuLayout(anchor = null) {
@@ -4472,7 +4482,7 @@
     const layout = getMobileMenuLayout();
     return {
       gutter: layout.gutter,
-      safeTop: layout.pillRect.top - (getMobileViewport()?.scrollTop ?? 0),
+      safeTop: layout.pillRect.top,
       safeBottom: layout.safeBottom,
       fullTop: layout.fullTop,
       fullBottom: layout.fullBottom ?? layout.safeBottom,
@@ -4484,19 +4494,10 @@
   }
 
   function getNavPillRectForMenu() {
+    const framePill = getNavPillRectInMobileFrame();
+    if (framePill) return framePill;
+
     const pillRect = navPill.getBoundingClientRect();
-    const viewport = getMobileViewport();
-
-    if (document.body.classList.contains('mobile-mode') && viewport) {
-      const viewportRect = viewport.getBoundingClientRect();
-      return {
-        top: viewport.scrollTop + unscaleMobileFramePx(pillRect.top - viewportRect.top),
-        left: unscaleMobileFramePx(pillRect.left - viewportRect.left),
-        width: unscaleMobileFramePx(pillRect.width),
-        height: unscaleMobileFramePx(pillRect.height),
-      };
-    }
-
     return {
       top: pillRect.top,
       left: pillRect.left,
@@ -4996,7 +4997,7 @@
       const vpRect = viewport.getBoundingClientRect();
       const vw = viewport.clientWidth;
       setMobileMenuRect({
-        top: Math.round(viewport.scrollTop + unscaleMobileFramePx(r.top - vpRect.top)),
+        top: Math.round(unscaleMobileFramePx(r.top - vpRect.top)),
         right: Math.round(vw - unscaleMobileFramePx(r.right - vpRect.left)),
         width: Math.round(unscaleMobileFramePx(r.width)),
         height: Math.round(unscaleMobileFramePx(r.height)),
@@ -5123,12 +5124,8 @@
     const viewport = document.body.classList.contains('mobile-mode') ? getMobileViewport() : null;
     const openAnchor = captureMobileMenuAnchor();
 
-    if (mobileMenuOverlay) {
-      if (viewport) {
-        mobileMenuOverlay.style.height = `${viewport.scrollHeight}px`;
-      } else {
-        mobileMenuOverlay.style.removeProperty('height');
-      }
+    if (mobileMenuOverlay && !viewport) {
+      mobileMenuOverlay.style.removeProperty('height');
     }
 
     document.body.classList.add('mobile-menu-open');
@@ -5150,8 +5147,6 @@
     const endRadius = getMobileMenuEndRadius();
     const { pillRect, fullTop, fullLeft, fullRight, fullWidth, fullHeight, useRightAnchor } = openAnchor;
 
-    if (viewport) viewport.scrollTop = openAnchor.scrollTop;
-
     mobileMenuEl.style.transition = 'none';
     setMobileMenuRect({
       top: pillRect.top,
@@ -5169,7 +5164,6 @@
 
     const runOpenAnimation = () => {
       if (token !== mobileMenuOpenToken) return;
-      if (viewport) viewport.scrollTop = openAnchor.scrollTop;
 
       mobileMenuEl.classList.add('is-visible');
       void mobileMenuEl.offsetWidth;
@@ -5301,10 +5295,6 @@
   function handleViewportResize() {
     updateMobileFrameScale();
     if (!mobileMenuOpen) return;
-    if (mobileMenuOverlay && document.body.classList.contains('mobile-mode')) {
-      const viewport = getMobileViewport();
-      if (viewport) mobileMenuOverlay.style.height = `${viewport.scrollHeight}px`;
-    }
     syncMobileMenuModeClasses();
     applyMobileMenuOpenLayout({ animate: mobileMenuEl.classList.contains('is-visible') });
   }
